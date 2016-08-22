@@ -7,67 +7,60 @@ import java.util.Random;
 import optimization.Measurable;
 import distribution.Noramalization;
 
-public class RouletteWheel<T extends Measurable> extends TransformStep<T> {
+public class RouletteWheel<T extends Measurable> {
 
-	public final Noramalization norm;
+    public final Noramalization norm;
 
-	public RouletteWheel(Noramalization norm, Random random) {
-		super(random);
-		this.norm = norm;
-	}
+    public RouletteWheel(Noramalization norm) {
+        this.norm = norm;
+    }
 
-	public RouletteWheel(Noramalization norm) {
-		super();
-		this.norm = norm;
-	}
+    public List<T> select(List<T> list, int size, Random random) {
+        int n = list.size();
 
-	@Override
-	public List<T> perfom(List<T> list, int m, Random random) {
-		int n = list.size();
+        if (size < 0) {
+            throw new RuntimeException("Can't select " + size + " negative number of objects");
+        }
 
-		if (m < 0) {
-			throw new RuntimeException("Can't select " + m + " negative number of objects");
-		}
+        if (size > n) {
+            throw new RuntimeException("Can't select " + size + " objects more than list size = " + n);
+        }
 
-		if (m > n) {
-			throw new RuntimeException("Can't select " + m + " objects more than list size = " + n);
-		}
+        List<T> result = new ArrayList<T>(size);
 
-		List<T> result = new ArrayList<T>(m);
+        if (size == n) {
+            result.addAll(list);
+            return result;
+        }
 
-		if (m == n) {
-			result.addAll(list);
-			return result;
-		}
+        double[] distribution = new double[n];
 
-		double[] distribution = new double[n];
+        for (int i = 0; i < n; i++) {
+            distribution[i] = list.get(i).fitnessFunction();
+        }
 
-		for (int i = 0; i < n; i++) {
-			distribution[i] = list.get(i).fitnessFunction();
-		}
+        norm.normalize(distribution, 0.001);
 
-		norm.normalize(distribution, 0.001);
+        double sum = 1;
 
-		double sum = 1;
+        for (int i = 0; i < size; i++) {
+            double val = random.nextDouble() * sum;
 
-		for (int i = 0; i < m; i++) {
-			double val = random.nextDouble() * sum;
+            for (int j = 0; j < n; j++) {
+                if (Double.isNaN(distribution[j])) {
+                    continue;
+                }
+                val -= distribution[j];
+                if (val < 1e-9) {
+                    result.add(list.get(j));
+                    sum -= distribution[j];
+                    distribution[j] = Double.NaN;
+                    break;
+                }
+            }
 
-			for (int j = 0; j < n; j++) {
-				if (Double.isNaN(distribution[j])) {
-					continue;
-				}
-				val -= distribution[j];
-				if (val < 1e-9) {
-					result.add(list.get(j));
-					sum -= distribution[j];
-					distribution[j] = Double.NaN;
-					break;
-				}
-			}
+        }
 
-		}
-
-		return result;
-	}
+        return result;
+    }
 }

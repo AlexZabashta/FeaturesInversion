@@ -1,7 +1,10 @@
 package optimization.gen;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 import distribution.UniformNorm;
 import optimization.Crossover;
@@ -12,46 +15,86 @@ import optimization.result.StoppingCriterion;
 
 public class GeneticSearch<T extends Measurable> {
 
-	final SelectBest<T> selectBest;
-	final RouletteWheel<T> rouletteWheel;
-	final MutationStep<T> mutationStep;
-	final PairwiseCrossover<T> crossoverStep;
+    final int threads = 16;
+    final RouletteWheel<T> rouletteWheel;
+    final Random random = new Random();
+    final Crossover<T> crossover;
+    final Mutation<T> mutation;
 
-	public GeneticSearch(Crossover<T> crossover, Mutation<T> mutation) {
-		this.selectBest = new SelectBest<T>();
-		this.rouletteWheel = new RouletteWheel<T>(new UniformNorm());
-		this.mutationStep = new MutationStep<T>(mutation);
-		this.crossoverStep = new PairwiseCrossover<T>(crossover);
-	}
+    public GeneticSearch(Crossover<T> crossover, Mutation<T> mutation) {
+        this.rouletteWheel = new RouletteWheel<T>(new UniformNorm());
+        this.crossover = crossover;
+        this.mutation = mutation;
+    }
 
-	public Result<T> search(List<T> generation, double pc, double pm, StoppingCriterion<T> stoppingCriterion, List<Result<T>> results) {
-		int generationSize = generation.size();
-		int numFunctionEval = 0;
-		int maxIter = 10000;
+    public Result<T> search(List<T> generation, double crossoverRate, double mutationRate, StoppingCriterion<T> stoppingCriterion, List<Result<T>> results) {
+        final int generationSize = generation.size();
+        int numFunctionEval = 0;
+        int maxIter = 10000;
 
-		int numOfChild = Math.max(generationSize / 2, (int) (generationSize * pc));
-		int numOfMut = Math.max(generationSize, (int) (generationSize * pm));
+        int numOfChild = Math.max(generationSize, (int) (generationSize * crossoverRate)) / 2;
+        int numOfMut = Math.max(generationSize, (int) (generationSize * mutationRate));
 
-		while (true) {
-			Result<T> result = new Result<T>(numFunctionEval, generation);
-			if (results != null) {
-				results.add(result);
-			}
+        while (true) {
+            Result<T> result = new Result<T>(numFunctionEval, generation);
+            if (results != null) {
+                results.add(result);
+            }
 
-			if (stoppingCriterion.test(result) || (--maxIter <= 0)) {
-				return result;
-			}
+            if (stoppingCriterion.test(result) || (--maxIter <= 0)) {
+                return result;
+            }
 
-			List<T> newGeneration = new ArrayList<T>();
+            List<T> newGeneration = new ArrayList<T>();
+            newGeneration.addAll(generation);
 
-			List<T> parents = rouletteWheel.perfom(generation, numOfChild * 2);
-			List<T> children = crossoverStep.perfom(parents, numOfChild);
-			newGeneration.addAll(children);
-			newGeneration.addAll(generation);
-			List<T> mutants = mutationStep.perfom(newGeneration, numOfMut);
-			newGeneration.addAll(mutants);
+            List<T> parents = rouletteWheel.select(generation, numOfChild * 2, random);
 
-			generation = selectBest.perfom(newGeneration, generationSize);
-		}
-	}
+            ParallelRunnner runnner = new ParallelRunnner();
+
+            for (int t = 0; t < threads; t++) {
+                final int offset = t;
+                runnner.add(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int i = offset; i < numOfChild; i += threads) {
+                            int u = 2 * i, v = u + 1;
+                            List<T> children = crossover.cross(parents.get(u), parents.get(v), random);
+                            synchronized (newGeneration) {
+                                newGeneration.addAll(children);
+                            }
+                        }
+                    }
+                });
+            }
+            runnner.run();
+
+            List<T> mutants = rouletteWheel.select(newGeneration, numOfMut, random);
+
+            for (int t = 0; t < threads; t++) {
+                final int offset = t;
+                runnner.add(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int i = offset; i < numOfMut; i += threads) {
+                            List<T> mutant = mutation.mutate(mutants.get(i), random);
+                            synchronized (newGeneration) {
+                                newGeneration.addAll(mutant);
+                            }
+                        }
+                    }
+                });
+            }
+            runnner.run();
+
+            Collections.sort(newGeneration, new Comparator<T>() {
+                @Override
+                public int compare(T x, T y) {
+                    return Double.compare(y.fitnessFunction(), x.fitnessFunction());
+                }
+            });
+
+            generation = newGeneration.subList(0, generationSize);
+        }
+    }
 }
