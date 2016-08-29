@@ -36,6 +36,21 @@ public class BinDataMutation implements Mutation<FeaturePoint<BinDataset>> {
         return val;
     }
 
+    static double[][] select(double[][] values, int n, int m, boolean[] mask) {
+        int len = values.length;
+        double[][] result = new double[len][m];
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0, k = 0; j < n; j++) {
+                if (mask[j]) {
+                    result[i][k++] = values[i][j];
+                }
+            }
+        }
+
+        return result;
+    }
+
     @Override
     public List<FeaturePoint<BinDataset>> mutate(FeaturePoint<BinDataset> source, Random random) {
         BinDataset dataset = source.object;
@@ -49,7 +64,29 @@ public class BinDataMutation implements Mutation<FeaturePoint<BinDataset>> {
             posB = RelationsGenerator.fit(posA, randomInt(random, posA.length), attrB, random);
             negB = RelationsGenerator.fit(negA, randomInt(random, negA.length), attrB, random);
         } else {
-            // TODO add/remove attr
+
+            attrB = randomInt(random, attrA);
+
+            if (attrA == attrB) {
+                if (random.nextBoolean()) {
+                    attrB++;
+                } else {
+                    attrB--;
+                }
+            }
+
+            if (attrA < attrB) { // ADD
+
+                
+                
+                
+                
+                
+            } else { // REMOVE
+                boolean[] mask = BooleanArray.random(attrA, attrB, random);
+                posB = select(posA, attrA, attrB, mask);
+                negB = select(negA, attrA, attrB, mask);
+            }
 
             posB = negB = null;
             attrB = 0;
