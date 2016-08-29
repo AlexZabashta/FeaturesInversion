@@ -50,11 +50,11 @@ public class GeneticSearch<T extends Measurable> {
 
             List<T> parents = rouletteWheel.select(generation, numOfChild * 2, random);
 
-            ParallelRunnner runnner = new ParallelRunnner();
+            List<Runnable> crossovers = new ArrayList<>();
 
             for (int t = 0; t < threads; t++) {
                 final int offset = t;
-                runnner.add(new Runnable() {
+                crossovers.add(new Runnable() {
                     @Override
                     public void run() {
                         for (int i = offset; i < numOfChild; i += threads) {
@@ -67,13 +67,15 @@ public class GeneticSearch<T extends Measurable> {
                     }
                 });
             }
-            runnner.run();
+            ParallelRunnner.run(crossovers);
+
+            List<Runnable> mutations = new ArrayList<>();
 
             List<T> mutants = rouletteWheel.select(newGeneration, numOfMut, random);
 
             for (int t = 0; t < threads; t++) {
                 final int offset = t;
-                runnner.add(new Runnable() {
+                mutations.add(new Runnable() {
                     @Override
                     public void run() {
                         for (int i = offset; i < numOfMut; i += threads) {
@@ -85,7 +87,7 @@ public class GeneticSearch<T extends Measurable> {
                     }
                 });
             }
-            runnner.run();
+            ParallelRunnner.run(mutations);
 
             Collections.sort(newGeneration, new Comparator<T>() {
                 @Override
@@ -94,7 +96,11 @@ public class GeneticSearch<T extends Measurable> {
                 }
             });
 
-            generation = newGeneration.subList(0, generationSize);
+            generation = new ArrayList<>();
+            for (int i = 0; i < generationSize; i++) {
+                generation.add(newGeneration.get(i));
+            }
+            System.gc();
         }
     }
 }

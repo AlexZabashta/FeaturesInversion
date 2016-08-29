@@ -3,22 +3,14 @@ package optimization.gen;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParallelRunnner implements Runnable {
-    final List<Runnable> tasks = new ArrayList<Runnable>();
+public class ParallelRunnner {
 
-    public void add(Runnable runnable) {
-        tasks.add(runnable);
-    }
-
-    @Override
-    public void run() {
+    public static void run(List<Runnable> tasks) {
         List<Thread> threads = new ArrayList<Thread>(tasks.size());
 
         for (Runnable runnable : tasks) {
             threads.add(new Thread(runnable));
         }
-
-        tasks.clear();
 
         for (Thread thread : threads) {
             thread.start();

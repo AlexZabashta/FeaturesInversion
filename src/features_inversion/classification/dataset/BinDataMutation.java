@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import features_inversion.classification.fun.AttributeFunction;
+import features_inversion.classification.fun.RandomFunction;
 import features_inversion.util.BooleanArray;
 import features_inversion.util.FeaturePoint;
 import features_inversion.util.MetaFeaturesExtractor;
@@ -22,7 +24,7 @@ public class BinDataMutation implements Mutation<FeaturePoint<BinDataset>> {
         return Math.min(x, y) + random.nextInt(Math.abs(x - y) + 1);
     }
 
-    static int randomInt(Random random, int mean) {
+    static int randomLocalInt(Random random, int mean) {
         int std = (mean + 1) / 2;
         int val = (int) Math.round((random.nextGaussian() * std + mean));
 
@@ -30,10 +32,23 @@ public class BinDataMutation implements Mutation<FeaturePoint<BinDataset>> {
             val = mean - std;
         }
 
-        if (val < 1) {
-            val = 1;
+        if (val == mean) {
+            if (random.nextBoolean()) {
+                ++val;
+            } else {
+                --val;
+            }
         }
-        return val;
+
+        if (val < 1) {
+            if (mean == 1) {
+                return 2;
+            } else {
+                return 1;
+            }
+        } else {
+            return val;
+        }
     }
 
     static double[][] select(double[][] values, int n, int m, boolean[] mask) {
@@ -51,6 +66,12 @@ public class BinDataMutation implements Mutation<FeaturePoint<BinDataset>> {
         return result;
     }
 
+    public static void apply(AttributeFunction fun, double[][] values, int index, boolean clazz) {
+        for (double[] array : values) {
+            array[index] = fun.evaluate(array, clazz);
+        }
+    }
+
     @Override
     public List<FeaturePoint<BinDataset>> mutate(FeaturePoint<BinDataset> source, Random random) {
         BinDataset dataset = source.object;
@@ -61,35 +82,27 @@ public class BinDataMutation implements Mutation<FeaturePoint<BinDataset>> {
 
         if (random.nextBoolean()) {
             attrB = attrA;
-            posB = RelationsGenerator.fit(posA, randomInt(random, posA.length), attrB, random);
-            negB = RelationsGenerator.fit(negA, randomInt(random, negA.length), attrB, random);
+            posB = RelationsGenerator.fit(posA, randomLocalInt(random, posA.length), attrB, random);
+            negB = RelationsGenerator.fit(negA, randomLocalInt(random, negA.length), attrB, random);
         } else {
-
-            attrB = randomInt(random, attrA);
-
-            if (attrA == attrB) {
-                if (random.nextBoolean()) {
-                    attrB++;
-                } else {
-                    attrB--;
-                }
-            }
+            attrB = randomLocalInt(random, attrA);
 
             if (attrA < attrB) { // ADD
+                posB = new double[posA.length][attrB];
+                negB = new double[negA.length][attrB];
 
-                
-                
-                
-                
-                
+                for (int i = attrA; i < attrB; i++) {
+                    AttributeFunction fun = RandomFunction.generate(random, i, 4);
+                    apply(fun, posB, i, true);
+                    apply(fun, negB, i, false);
+                }
+
             } else { // REMOVE
                 boolean[] mask = BooleanArray.random(attrA, attrB, random);
                 posB = select(posA, attrA, attrB, mask);
                 negB = select(negA, attrA, attrB, mask);
             }
 
-            posB = negB = null;
-            attrB = 0;
         }
 
         try {

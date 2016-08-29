@@ -10,18 +10,14 @@ import features_inversion.classification.ArffConverter;
 import features_inversion.util.MetaFeaturesExtractor;
 import weka.core.Instances;
 
-public class DAMetaFeatureExtractor implements MetaFeaturesExtractor<double[][][]> {
+public class DAMetaFeatureExtractor implements MetaFeaturesExtractor<BinDataset> {
 
     private final List<MetaFeatureExtractor> list = new ArrayList<MetaFeatureExtractor>();
     private final int n;
 
-    public DAMetaFeatureExtractor() {
-        List<MetaFeatureExtractor> all = null;// MetaFeatureExtractorsCollection.getMetaFeatureExtractors();
-
-        list.add(all.get(6));
-        list.add(all.get(13));
-
-        this.n = list.size();
+    public DAMetaFeatureExtractor(List<MetaFeatureExtractor> list) {
+        this.list.addAll(list);
+        this.n = this.list.size();
     }
 
     @Override
@@ -30,15 +26,13 @@ public class DAMetaFeatureExtractor implements MetaFeaturesExtractor<double[][][
     }
 
     @Override
-    public double[] extract(double[][][] object) throws Exception {
+    public double[] extract(BinDataset object) throws Exception {
         double[] features = new double[n];
 
-        Instances instances = ArffConverter.convert(object);
+        Instances instances = object.WEKAInstances();
         if (instances != null) {
             for (int i = 0; i < n; i++) {
-
                 features[i] = list.get(i).extractValue(instances);
-
             }
         }
         return features;

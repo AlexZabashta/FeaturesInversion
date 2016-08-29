@@ -38,6 +38,42 @@ public class BinDataset {
         this.numAttr = numAttr;
     }
 
+    public static BinDataset fromInstances(Instances instances) {
+        int numAttr = instances.numAttributes() - 1;
+
+        int p = 0, n = 0;
+
+        int len = instances.numInstances();
+
+        for (int i = 0; i < len; i++) {
+            if (instances.get(i).classValue() < 0.5) {
+                ++n;
+            } else {
+                ++p;
+            }
+        }
+
+        double[][] pos = new double[p][], neg = new double[n][];
+
+        n = p = 0;
+
+        for (int i = 0; i < len; i++) {
+
+            double[] vec = new double[numAttr];
+
+            for (int j = 0; j < numAttr; j++) {
+            }
+
+            if (instances.get(i).classValue() < 0.5) {
+                neg[n++] = vec;
+            } else {
+                pos[p++] = vec;
+            }
+        }
+
+        return new BinDataset(pos, neg, numAttr);
+    }
+
     public Instances WEKAInstances() {
 
         ArrayList<Attribute> attributes = new ArrayList<Attribute>(numAttr + 1);
