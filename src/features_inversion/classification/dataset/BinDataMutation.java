@@ -55,7 +55,7 @@ public class BinDataMutation implements Mutation<FeaturePoint<BinDataset>> {
         int len = values.length;
         double[][] result = new double[len][m];
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < len; i++) {
             for (int j = 0, k = 0; j < n; j++) {
                 if (mask[j]) {
                     result[i][k++] = values[i][j];

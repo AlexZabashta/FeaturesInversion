@@ -59,7 +59,7 @@ public class BinDataCross implements Crossover<FeaturePoint<BinDataset>> {
                 if (j < objX.numAttr) {
                     val = posX[i][j];
                 } else {
-                    val = posX[i][j - objX.numAttr];
+                    val = posY[i][j - objX.numAttr];
                 }
 
                 if (f[j]) {
@@ -76,7 +76,7 @@ public class BinDataCross implements Crossover<FeaturePoint<BinDataset>> {
                 if (j < objX.numAttr) {
                     val = negX[i][j];
                 } else {
-                    val = negX[i][j - objX.numAttr];
+                    val = negY[i][j - objX.numAttr];
                 }
 
                 if (f[j]) {

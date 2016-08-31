@@ -59,9 +59,11 @@ public class BinDataset {
 
         for (int i = 0; i < len; i++) {
 
+            Instance instance = instances.get(i);
             double[] vec = new double[numAttr];
 
             for (int j = 0; j < numAttr; j++) {
+                vec[j] = instance.value(j);
             }
 
             if (instances.get(i).classValue() < 0.5) {

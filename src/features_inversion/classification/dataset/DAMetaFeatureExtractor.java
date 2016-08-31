@@ -32,7 +32,14 @@ public class DAMetaFeatureExtractor implements MetaFeaturesExtractor<BinDataset>
         Instances instances = object.WEKAInstances();
         if (instances != null) {
             for (int i = 0; i < n; i++) {
-                features[i] = list.get(i).extractValue(instances);
+                double value = list.get(i).extractValue(instances);
+                if (Double.isInfinite(value)) {
+                    throw new RuntimeException(i + " is INF");
+                }
+                if (Double.isNaN(value)) {
+                    throw new RuntimeException(i + " is NAN");
+                }
+                features[i] = value;
             }
         }
         return features;

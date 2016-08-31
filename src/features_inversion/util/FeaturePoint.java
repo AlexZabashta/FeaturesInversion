@@ -2,7 +2,7 @@ package features_inversion.util;
 
 import optimization.Measurable;
 
-public class FeaturePoint<T> extends Point implements Measurable {
+public class FeaturePoint<T> extends Point implements Measurable, Comparable<FeaturePoint<T>> {
 
     public final Point target, scale;
 
@@ -37,6 +37,11 @@ public class FeaturePoint<T> extends Point implements Measurable {
     @Override
     public double fitnessFunction() {
         return fitnessFunction;
+    }
+
+    @Override
+    public int compareTo(FeaturePoint<T> fp) {
+        return Double.compare(fitnessFunction(), fp.fitnessFunction());
     }
 
 }

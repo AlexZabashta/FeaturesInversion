@@ -31,25 +31,29 @@ public class GeneticSearch<T extends Measurable> {
         final int generationSize = generation.size();
         int numFunctionEval = 0;
         int maxIter = 10000;
+        int it = 0;
 
         int numOfChild = Math.max(generationSize, (int) (generationSize * crossoverRate)) / 2;
         int numOfMut = Math.max(generationSize, (int) (generationSize * mutationRate));
 
         while (true) {
-            Result<T> result = new Result<T>(numFunctionEval, generation);
+
+            Result<T> result = new Result<T>(numFunctionEval, it, generation);
             if (results != null) {
                 results.add(result);
             }
 
-            if (stoppingCriterion.test(result) || (--maxIter <= 0)) {
+            if (stoppingCriterion.test(result) || (it++ >= maxIter)) {
                 return result;
             }
+
+            numFunctionEval += numOfChild;
+            numFunctionEval += numOfMut;
 
             List<T> newGeneration = new ArrayList<T>();
             newGeneration.addAll(generation);
 
             List<T> parents = rouletteWheel.select(generation, numOfChild * 2, random);
-
             List<Runnable> crossovers = new ArrayList<>();
 
             for (int t = 0; t < threads; t++) {
@@ -57,6 +61,7 @@ public class GeneticSearch<T extends Measurable> {
                 crossovers.add(new Runnable() {
                     @Override
                     public void run() {
+                        Random random = new Random();
                         for (int i = offset; i < numOfChild; i += threads) {
                             int u = 2 * i, v = u + 1;
                             List<T> children = crossover.cross(parents.get(u), parents.get(v), random);
@@ -78,6 +83,7 @@ public class GeneticSearch<T extends Measurable> {
                 mutations.add(new Runnable() {
                     @Override
                     public void run() {
+                        Random random = new Random();
                         for (int i = offset; i < numOfMut; i += threads) {
                             List<T> mutant = mutation.mutate(mutants.get(i), random);
                             synchronized (newGeneration) {
