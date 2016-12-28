@@ -1,15 +1,26 @@
 package features_inversion.classification.dataset;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import com.ifmo.recommendersystem.metafeatures.decisiontree.WrappedC45DecisionTree;
+import com.ifmo.recommendersystem.metafeatures.decisiontree.WrappedC45ModelSelection;
+
+import weka.classifiers.trees.j48.ModelSelection;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
-public class BinDataset {
+public class BinDataset implements Serializable {
+    private static final long serialVersionUID = 1L;
     public final double[][] pos, neg;
     public final int numAttr;
+
+    private transient Instances instances = null;
+    private transient WrappedC45DecisionTree decisionPTree = null;
+    private transient WrappedC45DecisionTree decisionUTree = null;
 
     public BinDataset(double[][] pos, double[][] neg, int numAttr) {
         this.pos = pos;
@@ -76,7 +87,30 @@ public class BinDataset {
         return new BinDataset(pos, neg, numAttr);
     }
 
+    public WrappedC45DecisionTree decisionPTree() throws Exception {
+        if (decisionPTree == null) {
+            Instances instances = WEKAInstances();
+            ModelSelection modelSelection = new WrappedC45ModelSelection(instances);
+            decisionPTree = new WrappedC45DecisionTree(modelSelection, true);
+            decisionPTree.buildClassifier(instances);
+        }
+        return decisionPTree;
+    }
+
+    public WrappedC45DecisionTree decisionUTree() throws Exception {
+        if (decisionUTree == null) {
+            Instances instances = WEKAInstances();
+            ModelSelection modelSelection = new WrappedC45ModelSelection(instances);
+            decisionUTree = new WrappedC45DecisionTree(modelSelection, true);
+            decisionUTree.buildClassifier(instances);
+        }
+        return decisionUTree;
+    }
+
     public Instances WEKAInstances() {
+        if (this.instances != null) {
+            return this.instances;
+        }
 
         ArrayList<Attribute> attributes = new ArrayList<Attribute>(numAttr + 1);
         for (int i = 0; i < numAttr; i++) {
@@ -112,7 +146,7 @@ public class BinDataset {
             instances.add(instance);
         }
 
-        return instances;
+        return this.instances = instances;
     }
 
 }

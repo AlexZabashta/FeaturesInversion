@@ -1,6 +1,8 @@
 package com.ifmo.recommendersystem.metafeatures.decisiontree;
 
 import com.ifmo.recommendersystem.metafeatures.MetaFeatureExtractor;
+
+import features_inversion.classification.dataset.BinDataset;
 import weka.classifiers.trees.j48.ModelSelection;
 import weka.core.Instances;
 
@@ -20,12 +22,20 @@ public abstract class AbstractTreeExtractor extends MetaFeatureExtractor {
     }
 
     @Override
+    public double extractValue(BinDataset dataset) throws Exception {
+        if (pruneTree) {
+            return function.applyAsDouble(dataset.decisionPTree());
+        } else {
+            return function.applyAsDouble(dataset.decisionUTree());
+        }
+    }
+
+    @Override
     public double extractValue(Instances instances) throws Exception {
         ModelSelection modelSelection = new WrappedC45ModelSelection(instances);
 
         WrappedC45DecisionTree tree = new WrappedC45DecisionTree(modelSelection, pruneTree);
         tree.buildClassifier(instances);
         return function.applyAsDouble(tree);
-
     }
 }

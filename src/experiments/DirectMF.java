@@ -17,8 +17,8 @@ import com.ifmo.recommendersystem.metafeatures.MetaFeatureExtractor;
 import features_inversion.classification.dataset.BinDataCross;
 import features_inversion.classification.dataset.BinDataMutation;
 import features_inversion.classification.dataset.BinDataset;
-import features_inversion.classification.dataset.DAMetaFeatureExtractor;
 import features_inversion.classification.dataset.MetaFeatureExtractorsCollection;
+import features_inversion.classification.dataset.DAMetaFeatureExtractor;
 import features_inversion.util.FeaturePoint;
 import features_inversion.util.Point;
 import misc.FolderUtils;
@@ -38,7 +38,7 @@ public class DirectMF {
 
         List<MetaFeatureExtractor> all = MetaFeatureExtractorsCollection.all();
 
-        int n = 27;
+        int n = 53;
         boolean[] integer = new boolean[n];
         Arrays.fill(integer, true);
 
@@ -47,32 +47,35 @@ public class DirectMF {
                 Instances instances = new Instances(new FileReader(arff));
                 instances.setClassIndex(instances.numAttributes() - 1);
 
+                // BinDataset dataset = BinDataset.fromInstances(instances);
+                //
+                // for (int i = 0; i < n; i++) {
+                // MetaFeatureExtractor mfe = all.get(i);
+                // double value = mfe.extractValue(instances);
+                // if (Double.isInfinite(value)) {
+                // continue;
+                // }
+                // if (Double.isNaN(value)) {
+                // continue;
+                // }
+                //
+                // integer[i] &= Math.round(value) == value;
+                // }
+
+                BinDataset dataset = BinDataset.fromInstances(instances);
+                // Instances winst = dataset.WEKAInstances();
+
                 for (int i = 0; i < n; i++) {
                     MetaFeatureExtractor mfe = all.get(i);
-                    double value = mfe.extractValue(instances);
-                    if (Double.isInfinite(value)) {
-                        continue;
-                    }
-                    if (Double.isNaN(value)) {
-                        continue;
-                    }
-
-                    integer[i] &= Math.round(value) == value;
+                    double value = mfe.extractValue(dataset);
+                    // out.print(value + " ");
+                    System.out.print(value + " ");
                 }
-                //
-                // BinDataset dataset = BinDataset.fromInstances(instances);
-                // Instances winst = dataset.WEKAInstances();
-                //
-                // for (MetaFeatureExtractor mfe : all) {
-                // double value = mfe.extractValue(instances);
-                // out.print(value + " ");
-                // System.out.print(value + " ");
-                // }
-                // System.out.println();
-                //
+                System.out.println();
+
                 // for (MetaFeatureExtractor mfe : all) {
                 // double value = mfe.extractValue(winst);
-                // out.print(value + " ");
+                // // out.print(value + " ");
                 // System.out.print(value + " ");
                 // }
                 // System.out.println();

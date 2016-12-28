@@ -33,16 +33,33 @@ import optimization.result.Result;
 import optimization.result.StoppingCriterion;
 import weka.core.Instances;
 
-public class TestExp {
+public class SingleRunExp {
 
     public static double convert(int c, Point point, Point target, Point scale) {
         double v = (point.coordinate(c) - target.coordinate(c)) / (3 * scale.coordinate(c));
         return v + 0.5;
     }
 
-    public static <T> void print(String path, List<FeaturePoint<T>> points, Point target, Point scale) throws IOException {
-        int w = 1600;
-        int h = 1600;
+    public static void printPoint(int px, int py, int w, int h, int rad, int color, BufferedImage image) {
+        for (int dx = -rad; dx <= rad; dx++) {
+            for (int dy = -rad; dy <= rad; dy++) {
+                int ds = Math.abs(dx) + Math.abs(dy);
+                if (ds <= rad) {
+                    int x = px + dx;
+                    int y = py + dy;
+                    if (0 <= x && x < w && 0 <= y && y < h) {
+                        image.setRGB(x, h - y - 1, color);
+                    }
+
+                }
+
+            }
+        }
+    }
+
+    public static void print(String path, List<? extends Point> points, Point target, Point scale) throws IOException {
+        int w = 921;
+        int h = 921;
 
         int pointColor = 0x000000, lineColor = 0x545454;
 
@@ -54,8 +71,20 @@ public class TestExp {
             }
         }
 
-        int rad = 4;
-        for (FeaturePoint<T> p : points) {
+        int rad = 3;
+
+        for (int r = 0; r < 30; r++) {
+            int cx = (int) Math.round(0.5 * w);
+            int cy = (int) Math.round(0.5 * h);
+
+            printPoint(cx + r, cy + r, w, h, 4, lineColor, image);
+            printPoint(cx - r, cy + r, w, h, 4, lineColor, image);
+            printPoint(cx + r, cy - r, w, h, 4, lineColor, image);
+            printPoint(cx - r, cy - r, w, h, 4, lineColor, image);
+
+        }
+
+        for (Point p : points) {
             if (p == null) {
                 continue;
             }
@@ -78,31 +107,31 @@ public class TestExp {
             }
         }
 
-        {
-            int y = (int) Math.floor(0.5 * h);
-            if (y >= h) {
-                y = h - 1;
-            }
-            if (y < 0) {
-                y = 0;
-            }
-            for (int x = 0; x < w; x++) {
-                image.setRGB(x, h - y - 1, lineColor);
-            }
-        }
-
-        {
-            int x = (int) Math.floor(0.5 * w);
-            if (x >= w) {
-                x = w - 1;
-            }
-            if (x < 0) {
-                x = 0;
-            }
-            for (int y = 0; y < h; y++) {
-                image.setRGB(x, h - y - 1, lineColor);
-            }
-        }
+        // {
+        // int y = (int) Math.floor(0.5 * h);
+        // if (y >= h) {
+        // y = h - 1;
+        // }
+        // if (y < 0) {
+        // y = 0;
+        // }
+        // for (int x = 0; x < w; x++) {
+        // image.setRGB(x, h - y - 1, lineColor);
+        // }
+        // }
+        //
+        // {
+        // int x = (int) Math.floor(0.5 * w);
+        // if (x >= w) {
+        // x = w - 1;
+        // }
+        // if (x < 0) {
+        // x = 0;
+        // }
+        // for (int y = 0; y < h; y++) {
+        // image.setRGB(x, h - y - 1, lineColor);
+        // }
+        // }
 
         ImageIO.write(image, "png", new File(path));
     }
@@ -226,7 +255,7 @@ public class TestExp {
 
         List<FeaturePoint<BinDataset>> start = featurePoints.subList(0, (featurePoints.size() * 2) / 3);
 
-        String path = FolderUtils.openOrCreate("init3", fx + "_" + fy);
+        String path = FolderUtils.openOrCreate("init2", fx + "_" + fy);
 
         print(path + "init.png", featurePoints, target, scale);
         // print(path + "start.png", start, target, scale);
@@ -301,13 +330,15 @@ public class TestExp {
 
     public static void main(String[] args) throws IOException {
 
-        int l = 10, r = 34;
+        printGS(4, 24);
 
-        for (int fy = l; fy < r; fy++) {
-            for (int fx = l; fx < fy; fx++) {
-                printGS(fx, fy);
-            }
-        }
+        // int l = 4, r = 34;
+        //
+        // for (int fy = l; fy < r; fy++) {
+        // for (int fx = l; fx < fy; fx++) {
+        // printGS(fx, fy);
+        // }
+        // }
 
     }
 }

@@ -28,10 +28,14 @@ public class FeaturePoint<T> extends Point implements Measurable, Comparable<Fea
         }
 
         for (int i = 0; i < d; i++) {
-            double diff = (super.coordinate(i) - target.coordinate(i)) / scale.coordinate(i);
+            double diff = dist(i);
             sumOfSquares += diff * diff;
         }
         this.fitnessFunction = -Math.sqrt(sumOfSquares);
+    }
+
+    public double dist(int index) {
+        return Math.abs((super.coordinate(index) - target.coordinate(index)) / scale.coordinate(index));
     }
 
     @Override

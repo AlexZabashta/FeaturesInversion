@@ -5,21 +5,16 @@ import weka.core.Instances;
 
 import java.util.Arrays;
 
+import features_inversion.classification.dataset.BinDataset;
+
 public abstract class MetaFeatureExtractor {
     public abstract String getName();
 
-    /**
-     * This method should return the result of computing value for meta feature with name.
-     * Any specific arguments?
-     * 
-     * @throws Exception
-     */
-    public MetaFeature extract(Instances instances) throws Exception {
-        double value = extractValue(instances);
-        return new MetaFeature(this, value);
-    }
-
     public abstract double extractValue(Instances instances) throws Exception;
+
+    public double extractValue(BinDataset dataset) throws Exception {
+        return extractValue(dataset.WEKAInstances());
+    }
 
     protected boolean isNonClassAttributeWithType(Instances instances, int attributeIndex, int... types) {
         Attribute attribute = instances.attribute(attributeIndex);

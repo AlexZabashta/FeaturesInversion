@@ -33,7 +33,7 @@ import optimization.result.Result;
 import optimization.result.StoppingCriterion;
 import weka.core.Instances;
 
-public class TestExp {
+public class MultiDim {
 
     public static double convert(int c, Point point, Point target, Point scale) {
         double v = (point.coordinate(c) - target.coordinate(c)) / (3 * scale.coordinate(c));
@@ -46,65 +46,72 @@ public class TestExp {
 
         int pointColor = 0x000000, lineColor = 0x545454;
 
-        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_BGR);
+        int dim = target.dimension();
 
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                image.setRGB(x, h - y - 1, 0xFFFFFF);
-            }
-        }
+        for (int ordinate = 0; ordinate < dim; ordinate++) {
+            for (int abscissa = 0; abscissa < ordinate; abscissa++) {
 
-        int rad = 4;
-        for (FeaturePoint<T> p : points) {
-            if (p == null) {
-                continue;
-            }
-            int px = (int) Math.round(convert(0, p, target, scale) * w);
-            int py = (int) Math.round(convert(1, p, target, scale) * h);
+                BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_BGR);
 
-            for (int dx = -rad; dx <= rad; dx++) {
-                for (int dy = -rad; dy <= rad; dy++) {
-                    int ds = Math.abs(dx) + Math.abs(dy);
-                    if (ds <= rad) {
-                        int x = px + dx;
-                        int y = py + dy;
-                        if (0 <= x && x < w && 0 <= y && y < h) {
-                            image.setRGB(x, h - y - 1, pointColor);
-                        }
-
+                for (int x = 0; x < w; x++) {
+                    for (int y = 0; y < h; y++) {
+                        image.setRGB(x, h - y - 1, 0xFFFFFF);
                     }
-
                 }
+
+                int rad = 4;
+                for (FeaturePoint<T> p : points) {
+                    if (p == null) {
+                        continue;
+                    }
+                    int px = (int) Math.round(convert(abscissa, p, target, scale) * w);
+                    int py = (int) Math.round(convert(ordinate, p, target, scale) * h);
+
+                    for (int dx = -rad; dx <= rad; dx++) {
+                        for (int dy = -rad; dy <= rad; dy++) {
+                            int ds = Math.abs(dx) + Math.abs(dy);
+                            if (ds <= rad) {
+                                int x = px + dx;
+                                int y = py + dy;
+                                if (0 <= x && x < w && 0 <= y && y < h) {
+                                    image.setRGB(x, h - y - 1, pointColor);
+                                }
+
+                            }
+
+                        }
+                    }
+                }
+
+                {
+                    int y = (int) Math.floor(0.5 * h);
+                    if (y >= h) {
+                        y = h - 1;
+                    }
+                    if (y < 0) {
+                        y = 0;
+                    }
+                    for (int x = 0; x < w; x++) {
+                        image.setRGB(x, h - y - 1, lineColor);
+                    }
+                }
+
+                {
+                    int x = (int) Math.floor(0.5 * w);
+                    if (x >= w) {
+                        x = w - 1;
+                    }
+                    if (x < 0) {
+                        x = 0;
+                    }
+                    for (int y = 0; y < h; y++) {
+                        image.setRGB(x, h - y - 1, lineColor);
+                    }
+                }
+
+                ImageIO.write(image, "png", new File(path + "_" + abscissa + "_" + ordinate + ".png"));
             }
         }
-
-        {
-            int y = (int) Math.floor(0.5 * h);
-            if (y >= h) {
-                y = h - 1;
-            }
-            if (y < 0) {
-                y = 0;
-            }
-            for (int x = 0; x < w; x++) {
-                image.setRGB(x, h - y - 1, lineColor);
-            }
-        }
-
-        {
-            int x = (int) Math.floor(0.5 * w);
-            if (x >= w) {
-                x = w - 1;
-            }
-            if (x < 0) {
-                x = 0;
-            }
-            for (int y = 0; y < h; y++) {
-                image.setRGB(x, h - y - 1, lineColor);
-            }
-        }
-
-        ImageIO.write(image, "png", new File(path));
     }
 
     static void printStd(int fid) {
@@ -160,14 +167,18 @@ public class TestExp {
 
     // final static Random random = new Random();
 
-    static void printGS(int fx, int fy) throws IOException {
+    public static void main(String[] args) throws IOException {
+
         File dataFolder = new File("data" + File.separator + "carff");
 
         List<MetaFeatureExtractor> all = MetaFeatureExtractorsCollection.all();
 
         List<MetaFeatureExtractor> extractors = new ArrayList<>();
-        extractors.add(all.get(fx));
-        extractors.add(all.get(fy));
+
+        for (int i = 4; i < 15; i++) {
+            extractors.add(all.get(i));
+        }
+
         DAMetaFeatureExtractor extractor = new DAMetaFeatureExtractor(extractors);
 
         List<BinDataset> datasets = new ArrayList<BinDataset>();
@@ -206,7 +217,7 @@ public class TestExp {
 
         for (int i = 0; i < m; i++) {
             mean[i] = sum1[i] / n;
-            std[i] = Math.max(Math.sqrt(sum2[i] / n - mean[i] * mean[i]), 1e-9);
+            std[i] = Math.sqrt(Math.max(sum2[i] / n - mean[i] * mean[i], 1e-8));
         }
 
         Point target = new Point(mean);
@@ -224,11 +235,26 @@ public class TestExp {
 
         Collections.sort(featurePoints);
 
-        List<FeaturePoint<BinDataset>> start = featurePoints.subList(0, (featurePoints.size() * 2) / 3);
+        List<FeaturePoint<BinDataset>> start = new ArrayList<>();
 
-        String path = FolderUtils.openOrCreate("init3", fx + "_" + fy);
+        for (FeaturePoint<BinDataset> point : featurePoints) {
+            int close = 0;
+            for (int i = 0; i < m; i++) {
+                if (point.dist(i) < 0.3) {
+                    ++close;
+                }
+            }
 
-        print(path + "init.png", featurePoints, target, scale);
+            //System.out.println(close + " / " + m);
+
+            if (close <= 4) {
+                start.add(point);
+            }
+        }
+
+        String path = FolderUtils.openOrCreate("test2", 4 + "_" + 34);
+
+        print(path + "init", featurePoints, target, scale);
         // print(path + "start.png", start, target, scale);
 
         int evalLimit = 6543;
@@ -246,7 +272,7 @@ public class TestExp {
         int len = results.size();
 
         for (int i = 0; i < len; i++) {
-            print(path + "step" + i + ".png", results.get(i).instances, target, scale);
+            print(path + "step" + i, results.get(i).instances, target, scale);
         }
 
         List<FeaturePoint<BinDataset>> gen = new ArrayList<>();
@@ -290,23 +316,10 @@ public class TestExp {
         ParallelRunnner.run(generators);
 
         Result<FeaturePoint<BinDataset>> genData = new Result<>(evalLimit, 0, gen);
-        print(path + "gen.png", gen, target, scale);
+        print(path + "gen", gen, target, scale);
         try (PrintWriter log = new PrintWriter((path + "result.txt"))) {
             log.println(result.bestValue);
             log.println(genData.bestValue);
-        }
-
-        System.out.println(fx + " " + fy);
-    }
-
-    public static void main(String[] args) throws IOException {
-
-        int l = 10, r = 34;
-
-        for (int fy = l; fy < r; fy++) {
-            for (int fx = l; fx < fy; fx++) {
-                printGS(fx, fy);
-            }
         }
 
     }
