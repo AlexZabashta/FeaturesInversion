@@ -8,7 +8,10 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.imageio.ImageIO;
 
@@ -38,9 +41,14 @@ public class DirectMF {
 
         List<MetaFeatureExtractor> all = MetaFeatureExtractorsCollection.all();
 
-        int n = 53;
+        int n = 34;
         boolean[] integer = new boolean[n];
         Arrays.fill(integer, true);
+
+        Set<Double>[] values = new Set[n];
+        for (int i = 0; i < n; i++) {
+            values[i] = new HashSet<Double>(1024);
+        }
 
         for (File arff : dataFolder.listFiles()) {
             try {
@@ -68,10 +76,13 @@ public class DirectMF {
                 for (int i = 0; i < n; i++) {
                     MetaFeatureExtractor mfe = all.get(i);
                     double value = mfe.extractValue(dataset);
+
+                    values[i].add(value);
+
                     // out.print(value + " ");
-                    System.out.print(value + " ");
+                    // System.out.print(value + " ");
                 }
-                System.out.println();
+                // System.out.println();
 
                 // for (MetaFeatureExtractor mfe : all) {
                 // double value = mfe.extractValue(winst);
@@ -88,19 +99,14 @@ public class DirectMF {
                 // datasets.add(dataset);
                 // points.add(point);
 
+                System.err.println(arff );
             } catch (Exception err) {
                 System.err.println(arff + " " + err.getMessage());
             }
         }
 
         for (int i = 0; i < n; i++) {
-            System.out.println(i + " " + integer[i] + " " + all.get(i).getName());
-        }
-
-        for (int i = 0; i < n; i++) {
-            if (!integer[i]) {
-                System.out.print(i + ", ");
-            }
+            System.out.println(i + " " + values[i].size());
         }
 
     }

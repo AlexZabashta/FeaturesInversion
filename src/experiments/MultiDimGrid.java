@@ -33,7 +33,7 @@ import optimization.result.Result;
 import optimization.result.StoppingCriterion;
 import weka.core.Instances;
 
-public class MultiDim {
+public class MultiDimGrid {
 
     public static double convert(int c, Point point, Point target, Point scale) {
         double v = (point.coordinate(c) - target.coordinate(c)) / (3 * scale.coordinate(c));
@@ -41,31 +41,83 @@ public class MultiDim {
     }
 
     public static <T> void print(String path, List<FeaturePoint<T>> points, Point target, Point scale) throws IOException {
-        int w = 1600;
-        int h = 1600;
+        int s = 400;
+
+        int wn = 3;
+        int hn = 2;
+
+        int w = wn * s;
+        int h = hn * s;
 
         int pointColor = 0x000000, lineColor = 0x545454;
+        int blackColor = 0x000000, whiteColor = 0xFFFFFF;
+
+        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_BGR);
+        {
+            for (int x = 0; x < w; x++) {
+                for (int y = 0; y < h; y++) {
+                    image.setRGB(x, y, whiteColor);
+                }
+            }
+        }
 
         int dim = target.dimension();
 
+        int index = 0;
         for (int ordinate = 0; ordinate < dim; ordinate++) {
             for (int abscissa = 0; abscissa < ordinate; abscissa++) {
 
-                BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_BGR);
+                int offsetX = (index % wn);
+                int offsetY = (index / wn);
 
-                for (int x = 0; x < w; x++) {
-                    for (int y = 0; y < h; y++) {
-                        image.setRGB(x, h - y - 1, 0xFFFFFF);
+                offsetX *= s;
+                offsetY *= s;
+
+                {
+                    int y = 0;
+                    for (int x = 0; x < s; x++) {
+                        image.setRGB(x + offsetX, y + offsetY, blackColor);
                     }
                 }
 
-                int rad = 4;
+                {
+                    int x = 0;
+                    for (int y = 0; y < s; y++) {
+                        image.setRGB(x + offsetX, y + offsetY, blackColor);
+                    }
+                }
+                {
+                    int y = (int) Math.floor(0.5 * s);
+                    if (y >= s) {
+                        y = s - 1;
+                    }
+                    if (y < 0) {
+                        y = 0;
+                    }
+                    for (int x = 0; x < s; x++) {
+                        image.setRGB(x + offsetX, y + offsetY, lineColor);
+                    }
+                }
+
+                {
+                    int x = (int) Math.floor(0.5 * s);
+                    if (x >= s) {
+                        x = s - 1;
+                    }
+                    if (x < 0) {
+                        x = 0;
+                    }
+                    for (int y = 0; y < s; y++) {
+                        image.setRGB(x + offsetX, y + offsetY, lineColor);
+                    }
+                }
+                int rad = 3;
                 for (FeaturePoint<T> p : points) {
                     if (p == null) {
                         continue;
                     }
-                    int px = (int) Math.round(convert(abscissa, p, target, scale) * w);
-                    int py = (int) Math.round(convert(ordinate, p, target, scale) * h);
+                    int px = (int) Math.round(convert(abscissa, p, target, scale) * s);
+                    int py = (int) Math.round(convert(ordinate, p, target, scale) * s);
 
                     for (int dx = -rad; dx <= rad; dx++) {
                         for (int dy = -rad; dy <= rad; dy++) {
@@ -73,8 +125,8 @@ public class MultiDim {
                             if (ds <= rad) {
                                 int x = px + dx;
                                 int y = py + dy;
-                                if (0 <= x && x < w && 0 <= y && y < h) {
-                                    image.setRGB(x, h - y - 1, pointColor);
+                                if (0 <= x && x < s && 0 <= y && y < s) {
+                                    image.setRGB(x + offsetX, y + offsetY, pointColor);
                                 }
 
                             }
@@ -83,35 +135,25 @@ public class MultiDim {
                     }
                 }
 
-                {
-                    int y = (int) Math.floor(0.5 * h);
-                    if (y >= h) {
-                        y = h - 1;
-                    }
-                    if (y < 0) {
-                        y = 0;
-                    }
-                    for (int x = 0; x < w; x++) {
-                        image.setRGB(x, h - y - 1, lineColor);
-                    }
-                }
-
-                {
-                    int x = (int) Math.floor(0.5 * w);
-                    if (x >= w) {
-                        x = w - 1;
-                    }
-                    if (x < 0) {
-                        x = 0;
-                    }
-                    for (int y = 0; y < h; y++) {
-                        image.setRGB(x, h - y - 1, lineColor);
-                    }
-                }
-
-                ImageIO.write(image, "png", new File(path + "_" + abscissa + "_" + ordinate + ".png"));
+                index++;
             }
         }
+
+        {
+            int x = w - 1;
+            for (int y = 0; y < h; y++) {
+                image.setRGB(x, y, blackColor);
+            }
+        }
+
+        {
+            int y = h - 1;
+            for (int x = 0; x < w; x++) {
+                image.setRGB(x, y, blackColor);
+            }
+        }
+
+        ImageIO.write(image, "png", new File(path + ".png"));
     }
 
     public static void main(String[] args) throws IOException {
@@ -120,7 +162,7 @@ public class MultiDim {
 
         // List<MetaFeatureExtractor> all = MetaFeatureExtractorsCollection.rat();
 
-        List<MetaFeatureExtractor> extractors = MetaFeatureExtractorsCollection.tree4();
+        List<MetaFeatureExtractor> extractors = MetaFeatureExtractorsCollection.treestat4();
 
         DAMetaFeatureExtractor extractor = new DAMetaFeatureExtractor(extractors);
 
@@ -163,13 +205,13 @@ public class MultiDim {
             std[i] = Math.sqrt(Math.max(sum2[i] / n - mean[i] * mean[i], 1e-8));
         }
 
-//        for (int i = 0; i < m; i++) {
-//            if (i % 2 == 0) {
-//                mean[i] *= 2;
-//            } else {
-//                mean[i] /= 2;
-//            }
-//        }
+        // for (int i = 0; i < m; i++) {
+        // if (i % 2 == 1) {
+        // mean[i] *= 2;
+        // } else {
+        // mean[i] /= 2;
+        // }
+        // }
 
         Point target = new Point(mean);
         Point scale = new Point(std);
@@ -191,7 +233,7 @@ public class MultiDim {
         for (FeaturePoint<BinDataset> point : featurePoints) {
             int close = 0;
             for (int i = 0; i < m; i++) {
-                if (point.dist(i) < 0.3) {
+                if (point.dist(i) < 0.2) {
                     ++close;
                 }
             }
@@ -203,7 +245,7 @@ public class MultiDim {
             }
         }
 
-        String path = FolderUtils.openOrCreate("test4", "tree4");
+        String path = FolderUtils.openOrCreate("treestat4", "1");
 
         print(path + "init", featurePoints, target, scale);
         // print(path + "start.png", start, target, scale);
@@ -264,6 +306,61 @@ public class MultiDim {
             });
         }
 
+        Random random = new Random(322);
+
+        Result<FeaturePoint<BinDataset>> annealing = null;
+        {
+            FeaturePoint<BinDataset> cur = null;
+
+            for (FeaturePoint<BinDataset> point : featurePoints) {
+                if (cur == null || point.fitnessFunction() > cur.fitnessFunction()) {
+                    cur = point;
+                }
+            }
+
+            double temp = 1;
+            double coolingRate = 0.003;
+
+            FeaturePoint<BinDataset> best = cur;
+
+            annealing = new Result<>(genSize, 123, featurePoints);
+
+            for (int iter = 0; iter < evalLimit; iter += 6) {
+                List<FeaturePoint<BinDataset>> mutants = mutation.mutate(cur, random);
+
+                if (mutants.isEmpty()) {
+                    continue;
+                }
+
+                FeaturePoint<BinDataset> mutant = mutants.get(0);
+
+                if (annealing.bestValue < mutant.fitnessFunction()) {
+                    annealing = new Result<>(genSize, iter, mutants);
+                    print(path + "ann" + iter, mutants, target, scale);
+                }
+
+                if (cur.fitnessFunction() < mutant.fitnessFunction()) {
+                    cur = mutant;
+                    if (cur.fitnessFunction() > best.fitnessFunction()) {
+                        print(path + "ann" + iter, mutants, target, scale);
+                        best = cur;
+                    }
+                } else {
+                    if (random.nextDouble() < Math.exp((cur.fitnessFunction() - mutant.fitnessFunction()) / temp)) {
+                        cur = mutant;
+                    }
+                }
+
+                // if (newEnergy < energy) {
+                // return 1.0;
+                // }
+                // // If the new solution is worse, calculate an acceptance probability
+                // return Math.exp((energy - newEnergy) / temperature);
+                //
+                temp *= 1 - coolingRate;
+            }
+
+        }
         ParallelRunnner.run(generators);
 
         Result<FeaturePoint<BinDataset>> genData = new Result<>(evalLimit, 0, gen);
@@ -271,6 +368,7 @@ public class MultiDim {
         try (PrintWriter log = new PrintWriter((path + "result.txt"))) {
             log.println(result.bestValue);
             log.println(genData.bestValue);
+            log.println(annealing.bestValue);
         }
 
     }
