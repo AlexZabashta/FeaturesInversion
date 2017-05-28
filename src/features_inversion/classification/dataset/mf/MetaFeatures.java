@@ -48,4 +48,6 @@ public enum MetaFeatures {
     UNPRUNED_TREE_MAX_CLASS,
     UNPRUNED_TREE_MIN_CLASS,
     UNPRUNED_TREE_MEAN_CLASS;    
+
+    public static final int LENGTH = values().length;
 }

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import com.ifmo.recommendersystem.metafeatures.decisiontree.WrappedC45DecisionTree;
 import com.ifmo.recommendersystem.metafeatures.decisiontree.WrappedC45ModelSelection;
 
+import features_inversion.classification.dataset.mf.MetaFeatures;
 import weka.classifiers.trees.j48.ModelSelection;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -15,46 +16,17 @@ import weka.core.Instances;
 
 public class BinDataset implements Serializable {
     private static final long serialVersionUID = 1L;
-    public final double[][] pos, neg;
-    public final int numAttr;
-
-    private transient Instances instances = null;
-    private transient WrappedC45DecisionTree decisionPTree = null;
-    private transient WrappedC45DecisionTree decisionUTree = null;
-
-    public BinDataset(double[][] pos, double[][] neg, int numAttr) {
-        this.pos = pos;
-        this.neg = neg;
-
-        if (numAttr <= 0) {
-            throw new IllegalArgumentException("numAttr must be > 0");
-        }
-
-        if (pos.length == 0 || neg.length == 0) {
-            throw new IllegalArgumentException("'pos' and 'neg' length must be > 0");
-        }
-
-        for (double[] inst : neg) {
-            if (inst.length < numAttr) {
-                throw new IllegalStateException("Some instnce contains < numAttr");
-            }
-        }
-
-        for (double[] inst : pos) {
-            if (inst.length < numAttr) {
-                throw new IllegalStateException("Some instnce contains < numAttr");
-            }
-        }
-
-        this.numAttr = numAttr;
-    }
 
     public static BinDataset fromInstances(Instances instances) {
+
         int numAttr = instances.numAttributes() - 1;
 
         int p = 0, n = 0;
 
         int len = instances.numInstances();
+
+        if (instances.numClasses() != 2) {
+        }
 
         for (int i = 0; i < len; i++) {
             if (instances.get(i).classValue() < 0.5) {
@@ -87,66 +59,129 @@ public class BinDataset implements Serializable {
         return new BinDataset(pos, neg, numAttr);
     }
 
+    private transient WrappedC45DecisionTree decisionPTree = null;
+
+    private transient WrappedC45DecisionTree decisionUTree = null;
+
+    private transient Instances instances = null;
+    private final Object lock = new Object();
+    final double[] metaFeatures = new double[123];
+
+    public final int numAttr;
+
+    public final double[][] pos, neg;
+
+    public BinDataset(double[][] pos, double[][] neg, int numAttr) {
+        this.pos = pos;
+        this.neg = neg;
+
+        if (numAttr <= 0) {
+            throw new IllegalArgumentException("numAttr must be > 0");
+        }
+
+        if (pos.length == 0 || neg.length == 0) {
+            throw new IllegalArgumentException("'pos' and 'neg' length must be > 0");
+        }
+
+        for (double[] inst : neg) {
+            if (inst.length < numAttr) {
+                throw new IllegalStateException("Some instnce contains < numAttr");
+            }
+        }
+
+        for (double[] inst : pos) {
+            if (inst.length < numAttr) {
+                throw new IllegalStateException("Some instnce contains < numAttr");
+            }
+        }
+
+        this.numAttr = numAttr;
+
+        Arrays.fill(metaFeatures, Double.NaN);
+    }
+
     public WrappedC45DecisionTree decisionPTree() throws Exception {
         if (decisionPTree == null) {
-            Instances instances = WEKAInstances();
-            ModelSelection modelSelection = new WrappedC45ModelSelection(instances);
-            decisionPTree = new WrappedC45DecisionTree(modelSelection, true);
-            decisionPTree.buildClassifier(instances);
+            synchronized (lock) {
+                if (decisionPTree == null) {
+                    Instances instances = WEKAInstances();
+                    ModelSelection modelSelection = new WrappedC45ModelSelection(instances);
+                    decisionPTree = new WrappedC45DecisionTree(modelSelection, true);
+                    decisionPTree.buildClassifier(instances);
+                }
+            }
         }
         return decisionPTree;
     }
 
     public WrappedC45DecisionTree decisionUTree() throws Exception {
         if (decisionUTree == null) {
-            Instances instances = WEKAInstances();
-            ModelSelection modelSelection = new WrappedC45ModelSelection(instances);
-            decisionUTree = new WrappedC45DecisionTree(modelSelection, true);
-            decisionUTree.buildClassifier(instances);
+            synchronized (lock) {
+                if (decisionUTree == null) {
+                    Instances instances = WEKAInstances();
+                    ModelSelection modelSelection = new WrappedC45ModelSelection(instances);
+                    decisionUTree = new WrappedC45DecisionTree(modelSelection, false);
+                    decisionUTree.buildClassifier(instances);
+                }
+            }
         }
         return decisionUTree;
     }
 
-    public Instances WEKAInstances() {
-        if (this.instances != null) {
-            return this.instances;
-        }
-
-        ArrayList<Attribute> attributes = new ArrayList<Attribute>(numAttr + 1);
-        for (int i = 0; i < numAttr; i++) {
-            attributes.add(new Attribute("attr" + i));
-        }
-        ArrayList<String> classNames = new ArrayList<String>(2);
-        classNames.add("neg");
-        classNames.add("pos");
-        Attribute classAttr = new Attribute("class", classNames);
-
-        attributes.add(classAttr);
-
-        Instances instances = new Instances("name", attributes, neg.length + pos.length);
-
-        instances.setClassIndex(numAttr);
-
-        for (double[] inst : neg) {
-            Instance instance = new DenseInstance(numAttr + 1);
-            instance.setDataset(instances);
-            for (int i = 0; i < numAttr; i++) {
-                instance.setValue(i, inst[i]);
+    public double getMetaFeature(int index) {
+        if (Double.isNaN(metaFeatures[index])) {
+            synchronized (metaFeatures) {
+                if (Double.isNaN(metaFeatures[index])) {
+                    // TODO
+                    metaFeatures[index] = Math.random();
+                }
             }
-            instance.setClassValue(classNames.get(0));
-            instances.add(instance);
         }
-        for (double[] inst : pos) {
-            Instance instance = new DenseInstance(numAttr + 1);
-            instance.setDataset(instances);
-            for (int i = 0; i < numAttr; i++) {
-                instance.setValue(i, inst[i]);
-            }
-            instance.setClassValue(classNames.get(1));
-            instances.add(instance);
-        }
-
-        return this.instances = instances;
+        return metaFeatures[index];
     }
 
+    public Instances WEKAInstances() {
+        if (instances == null) {
+            synchronized (lock) {
+                if (instances == null) {
+
+                    ArrayList<Attribute> attributes = new ArrayList<Attribute>(numAttr + 1);
+                    for (int i = 0; i < numAttr; i++) {
+                        attributes.add(new Attribute("attr" + i));
+                    }
+                    ArrayList<String> classNames = new ArrayList<String>(2);
+                    classNames.add("neg");
+                    classNames.add("pos");
+                    Attribute classAttr = new Attribute("class", classNames);
+
+                    attributes.add(classAttr);
+
+                    instances = new Instances("name", attributes, neg.length + pos.length);
+
+                    instances.setClassIndex(numAttr);
+
+                    for (double[] inst : neg) {
+                        Instance instance = new DenseInstance(numAttr + 1);
+                        instance.setDataset(instances);
+                        for (int i = 0; i < numAttr; i++) {
+                            instance.setValue(i, inst[i]);
+                        }
+                        instance.setClassValue(classNames.get(0));
+                        instances.add(instance);
+                    }
+                    for (double[] inst : pos) {
+                        Instance instance = new DenseInstance(numAttr + 1);
+                        instance.setDataset(instances);
+                        for (int i = 0; i < numAttr; i++) {
+                            instance.setValue(i, inst[i]);
+                        }
+                        instance.setClassValue(classNames.get(1));
+                        instances.add(instance);
+                    }
+                }
+            }
+        }
+
+        return instances;
+    }
 }
