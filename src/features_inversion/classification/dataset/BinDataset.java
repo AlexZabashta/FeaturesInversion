@@ -8,6 +8,7 @@ import com.ifmo.recommendersystem.metafeatures.decisiontree.WrappedC45DecisionTr
 import com.ifmo.recommendersystem.metafeatures.decisiontree.WrappedC45ModelSelection;
 
 import features_inversion.classification.dataset.mf.MetaFeatures;
+import temp.mop.ListMetaFeatures;
 import weka.classifiers.trees.j48.ModelSelection;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -132,8 +133,7 @@ public class BinDataset implements Serializable {
         if (Double.isNaN(metaFeatures[index])) {
             synchronized (metaFeatures) {
                 if (Double.isNaN(metaFeatures[index])) {
-                    // TODO
-                    metaFeatures[index] = Math.random();
+                    metaFeatures[index] = ListMetaFeatures.extractValue(index, this);
                 }
             }
         }

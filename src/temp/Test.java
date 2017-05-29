@@ -17,6 +17,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import org.uma.jmetal.algorithm.singleobjective.evolutionstrategy.CovarianceMatrixAdaptationEvolutionStrategy;
+import org.uma.jmetal.algorithm.singleobjective.evolutionstrategy.CovarianceMatrixAdaptationEvolutionStrategy.Builder;
+import org.uma.jmetal.problem.DoubleProblem;
+import org.uma.jmetal.problem.impl.AbstractDoubleProblem;
+import org.uma.jmetal.runner.singleobjective.CovarianceMatrixAdaptationEvolutionStrategyRunner;
+import org.uma.jmetal.solution.DoubleSolution;
+
 import com.ifmo.recommendersystem.utils.StatisticalUtils;
 
 import features_inversion.classification.dataset.mf.MetaFeatures;
@@ -36,6 +43,72 @@ import weka.datagenerators.classifiers.classification.RandomRBF;
 public class Test {
 
     public static void main(String[] args) throws Exception {
+
+        AbstractDoubleProblem abstractDoubleProblem = new AbstractDoubleProblem() {
+
+            @Override
+            public void evaluate(DoubleSolution solution) {
+                solution.setObjective(0, 10);
+                solution.getObjective(10);
+            }
+        };
+
+        DoubleProblem problem = new DoubleProblem() {
+
+            @Override
+            public int getNumberOfVariables() {
+                // TODO Auto-generated method stub
+                return 0;
+            }
+
+            @Override
+            public int getNumberOfObjectives() {
+                // TODO Auto-generated method stub
+                return 0;
+            }
+
+            @Override
+            public int getNumberOfConstraints() {
+                // TODO Auto-generated method stub
+                return 0;
+            }
+
+            @Override
+            public String getName() {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public void evaluate(DoubleSolution solution) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public DoubleSolution createSolution() {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public Double getUpperBound(int index) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public Double getLowerBound(int index) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+        };
+
+        Builder cmaes = new CovarianceMatrixAdaptationEvolutionStrategy.Builder(problem);
+
+    }
+
+    static void wekaGen() throws Exception {
 
         Agrawal g1 = new Agrawal();
         BayesNet g2 = new BayesNet();
@@ -74,7 +147,7 @@ public class Test {
         g5.setMaxRuleSize(21);
         g5.setMinRuleSize(23);
         g5.setVoteFlag(false);
-        
+
         g5.setNumIrrelevant(0);
 
         g5.defineDataFormat();
