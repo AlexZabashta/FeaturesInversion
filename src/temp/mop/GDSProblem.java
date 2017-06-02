@@ -11,6 +11,8 @@ import temp.ErrorFunction;
 
 public class GDSProblem implements Problem<BinDataSetSolution> {
 
+    static int cnt = 0;
+
     private final ErrorFunction errorFunction;
     private final List<BinDataset> datasets;
     private final Random random = new Random();
@@ -18,7 +20,6 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
     public GDSProblem(ErrorFunction errorFunction, List<BinDataset> datasets) {
         this.errorFunction = errorFunction;
         this.datasets = new ArrayList<>(datasets);
-
     }
 
     @Override
@@ -49,6 +50,7 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
 
     @Override
     public BinDataSetSolution createSolution() {
+        ++cnt;
         return new BinDataSetSolution(datasets.get(random.nextInt(datasets.size())));
     }
 

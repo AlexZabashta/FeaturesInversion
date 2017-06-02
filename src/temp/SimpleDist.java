@@ -21,16 +21,35 @@ public class SimpleDist implements ErrorFunction {
 
     }
 
+    double best = Double.POSITIVE_INFINITY;
+
     @Override
     public double evaluate(BinDataset dataset) {
-        double dist = 0;
+        double sumOfSquares = 0;
 
         for (int i = 0; i < length; i++) {
             double diff = (target[i] - dataset.getMetaFeature(mfIndices[i])) * weight[i];
-            dist += diff * diff;
+            sumOfSquares += diff * diff;
         }
 
-        return Math.sqrt(dist);
+        double dist = Math.sqrt(sumOfSquares);
+
+        if (dist < best) {
+            best = dist;
+
+            System.out.printf("%7.3f    =", dist);
+
+            for (int i = 0; i < length; i++) {
+                double diff = (target[i] - dataset.getMetaFeature(mfIndices[i])) * weight[i];
+                System.out.printf("  %7.3f", diff * diff);
+            }
+
+            System.out.println();
+            System.out.flush();
+
+        }
+
+        return dist;
     }
 
 }

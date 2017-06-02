@@ -33,7 +33,7 @@ public class RelationsGenerator {
         return extRel;
     }
 
-    static double[][] fit(double[][] values, int size, int numAttr, Random random) {
+    public static double[][] fit(double[][] values, int size, int numAttr, Random random) {
 
         int len = values.length;
 

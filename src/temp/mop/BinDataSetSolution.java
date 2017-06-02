@@ -18,6 +18,10 @@ public class BinDataSetSolution implements Solution<BinDataset> {
         this.ef = ef;
     }
 
+    public BinDataset getDataset() {
+        return dataset;
+    }
+
     @Override
     public void setObjective(int index, double value) {
         ef = value;
@@ -65,7 +69,7 @@ public class BinDataSetSolution implements Solution<BinDataset> {
 
     @Override
     public Object getAttribute(Object id) {
-        return null;
+        return 1D;
     }
 
 }

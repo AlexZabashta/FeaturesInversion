@@ -27,6 +27,7 @@ public class BinDataset implements Serializable {
         int len = instances.numInstances();
 
         if (instances.numClasses() != 2) {
+            throw new IllegalArgumentException("Instances must have 2 classes");
         }
 
         for (int i = 0; i < len; i++) {
