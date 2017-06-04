@@ -14,12 +14,15 @@ import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.Normalize;
+import weka.filters.unsupervised.attribute.Standardize;
 
 public class BinDataset implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public static BinDataset fromInstances(Instances instances) {
-
+        instances = normalize(instances);
         int numAttr = instances.numAttributes() - 1;
 
         int p = 0, n = 0;
@@ -179,10 +182,32 @@ public class BinDataset implements Serializable {
                         instance.setClassValue(classNames.get(1));
                         instances.add(instance);
                     }
+
+                    instances = normalize(instances);
                 }
             }
         }
 
         return instances;
+    }
+
+    static Instances normalize(Instances instances) {
+        try {
+            Standardize standardize = new Standardize();
+            standardize.setInputFormat(instances);
+            return Filter.useFilter(instances, standardize);
+        } catch (Exception e0) {
+            System.err.println(e0.getLocalizedMessage());
+            try {
+                Normalize normalize = new Normalize();
+                normalize.setScale(2);
+                normalize.setTranslation(-1);
+                normalize.setInputFormat(instances);
+                return Filter.useFilter(instances, normalize);
+            } catch (Exception e1) {
+                System.err.println(e1.getLocalizedMessage());
+                return instances;
+            }
+        }
     }
 }

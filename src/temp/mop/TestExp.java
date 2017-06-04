@@ -14,6 +14,7 @@ import org.uma.jmetal.operator.CrossoverOperator;
 import org.uma.jmetal.operator.MutationOperator;
 
 import features_inversion.classification.dataset.BinDataset;
+import temp.DatasetGenerator;
 import temp.ErrorFunction;
 import temp.SimpleDist;
 import weka.core.Instances;
@@ -82,15 +83,48 @@ public class TestExp {
         System.out.println(Arrays.toString(target));
         System.out.println(Arrays.toString(weight));
 
-        ErrorFunction errorFunction = new SimpleDist(target, weight, mfIndices);
+        SimpleDist errorFunction = new SimpleDist(target, weight, mfIndices);
 
-        GenOverObj g = new GenOverObj(datasets);
+        // GenOverObj g = new GenOverObj(datasets);
 
         long time = System.currentTimeMillis();
 
         int pop = 50;
 
-        System.out.println(g.generate(-1, -1, -1, errorFunction, pop, pop * 40).size());
+        double sumAttributes = 0, sumPosInstances = 0, sumNegInstances = 0;
+        for (BinDataset dataset : datasets) {
+            sumAttributes += dataset.numAttr;
+            sumPosInstances += Math.max(dataset.pos.length, dataset.neg.length);
+            sumNegInstances += Math.min(dataset.pos.length, dataset.neg.length);
+        }
+
+        // Attributes
+
+        int numAttributes = (int) Math.round(sumAttributes / datasets.size());
+        int numPosInstances = (int) Math.round(sumPosInstances / datasets.size());
+        int numNegInstances = (int) Math.round(sumNegInstances / datasets.size());
+
+        double closestval = Double.POSITIVE_INFINITY;
+
+        for (BinDataset dataset : datasets) {
+            double cur = errorFunction.evaluate(dataset);
+
+            if (cur < closestval) {
+                closestval = cur;
+                numAttributes = dataset.numAttr;
+                numPosInstances = dataset.pos.length;
+                numNegInstances = dataset.neg.length;
+            }
+
+        }
+        System.out.printf("a = %d, p = %d, n = %d%n", numAttributes, numPosInstances, numNegInstances);
+
+        errorFunction.best = Double.POSITIVE_INFINITY;
+
+        // DatasetGenerator g = new GenOverDVect(datasets);
+        DatasetGenerator g = new GenOverObj(datasets);
+
+        System.out.println("size = " + g.generate(numAttributes, numPosInstances, numNegInstances, errorFunction, pop, pop * 40).size());
 
         System.out.println("time " + (System.currentTimeMillis() - time));
 

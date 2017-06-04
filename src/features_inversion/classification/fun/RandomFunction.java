@@ -12,7 +12,7 @@ import features_inversion.classification.fun.node.Sin;
 import features_inversion.classification.fun.node.Sum;
 
 public class RandomFunction {
-    public static AttributeFunction generate(Random random, int attr, int level) {
+    public static AttributeFunction generate1(Random random, int attr, int level) {
         double p = random.nextDouble();
 
         if (level <= 0) {
@@ -49,5 +49,40 @@ public class RandomFunction {
             return new Mul(generate(random, attr, level - 1), generate(random, attr, level - 1));
         }
 
+    }
+
+    public static AttributeFunction generate(Random random, int attr, int level) {
+        double p = random.nextDouble();
+
+        if (level <= 0) {
+            if (p < 0.5) {
+                if (p < 0.25 && attr > 0) {
+                    return new AttributeValue(random.nextInt(attr));
+                } else {
+                    return new ClassValue();
+                }
+            } else {
+                if (p < 0.75) {
+                    return new ConstValue(random.nextGaussian());
+                } else {
+                    return new NoiesValue(random);
+                }
+            }
+        } else {
+
+            if (p < 0.5) {
+                if (p < 0.25) {
+                    return new Sin(generate(random, attr, level - 1));
+                } else {
+                    return new Abs(generate(random, attr, level - 1));
+                }
+            } else {
+                if (p < 0.75) {
+                    return new Sum(generate(random, attr, level - 1), generate(random, attr, level - 1));
+                } else {
+                    return new Mul(generate(random, attr, level - 1), generate(random, attr, level - 1));
+                }
+            }
+        }
     }
 }

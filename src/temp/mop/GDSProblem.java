@@ -6,12 +6,13 @@ import java.util.Random;
 
 import org.uma.jmetal.problem.Problem;
 
+import features_inversion.classification.dataset.BinDataMutation;
 import features_inversion.classification.dataset.BinDataset;
+import features_inversion.classification.fun.AttributeFunction;
+import features_inversion.classification.fun.RandomFunction;
 import temp.ErrorFunction;
 
 public class GDSProblem implements Problem<BinDataSetSolution> {
-
-    static int cnt = 0;
 
     private final ErrorFunction errorFunction;
     private final List<BinDataset> datasets;
@@ -50,8 +51,22 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
 
     @Override
     public BinDataSetSolution createSolution() {
-        ++cnt;
-        return new BinDataSetSolution(datasets.get(random.nextInt(datasets.size())));
+        int attr = random.nextInt(200) + 1;
+        int posN = random.nextInt(200) + 1;
+        int negN = random.nextInt(200) + 1;
+
+        double[][] pos = new double[posN][attr];
+        double[][] neg = new double[negN][attr];
+
+        for (int j = 0; j < attr; j++) {
+            AttributeFunction fun = RandomFunction.generate(random, j, 4);
+            BinDataMutation.apply(fun, pos, j, true);
+            BinDataMutation.apply(fun, neg, j, false);
+        }
+
+        return new BinDataSetSolution(new BinDataset(pos, neg, attr));
+
+        // return new BinDataSetSolution(datasets.get(random.nextInt(datasets.size())));
     }
 
 }

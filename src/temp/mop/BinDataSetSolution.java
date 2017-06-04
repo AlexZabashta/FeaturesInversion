@@ -69,7 +69,7 @@ public class BinDataSetSolution implements Solution<BinDataset> {
 
     @Override
     public Object getAttribute(Object id) {
-        return 1D;
+        return 0D;
     }
 
 }

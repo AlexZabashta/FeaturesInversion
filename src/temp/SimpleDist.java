@@ -21,7 +21,7 @@ public class SimpleDist implements ErrorFunction {
 
     }
 
-    double best = Double.POSITIVE_INFINITY;
+    public double best = Double.POSITIVE_INFINITY;
 
     @Override
     public double evaluate(BinDataset dataset) {

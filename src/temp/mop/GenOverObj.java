@@ -21,7 +21,7 @@ public class GenOverObj implements DatasetGenerator {
     }
 
     @Override
-    public List<BinDataset> generate(int f, int p, int n, ErrorFunction error, int numDatasets, int limit) {
+    public List<BinDataset> generate(int a, int p, int n, ErrorFunction error, int numDatasets, int limit) {
 
         // ErrorFunction errorFunction = new SimpleDist(target, weight, mfIndices);
 
@@ -38,11 +38,15 @@ public class GenOverObj implements DatasetGenerator {
 
         List<BinDataSetSolution> initSolutions = new ArrayList<>();
 
-        for (int i = 0; i < numDatasets; i++) {
-            initSolutions.add(problem.createSolution());
+        // for (int i = 0; i < numDatasets; i++) {
+        // initSolutions.add(problem.createSolution());
+        // }
+
+        for (BinDataset dataset : initPopulation) {
+            // initSolutions.add(new BinDataSetSolution(dataset));
         }
 
-      //  ga.setPopulation(initSolutions);
+        // ga.setPopulation(initSolutions);
         ga.run();
         List<BinDataSetSolution> result = ga.getResult();
 
@@ -50,8 +54,6 @@ public class GenOverObj implements DatasetGenerator {
         for (BinDataSetSolution solution : result) {
             finalPopulation.add(solution.getDataset());
         }
-        
-        System.out.println(problem.cnt);
 
         return finalPopulation;
     }
