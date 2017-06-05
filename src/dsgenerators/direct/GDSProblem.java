@@ -1,4 +1,4 @@
-package temp.mop;
+package dsgenerators.direct;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,11 +6,11 @@ import java.util.Random;
 
 import org.uma.jmetal.problem.Problem;
 
+import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataMutation;
 import features_inversion.classification.dataset.BinDataset;
 import features_inversion.classification.fun.AttributeFunction;
 import features_inversion.classification.fun.RandomFunction;
-import temp.ErrorFunction;
 
 public class GDSProblem implements Problem<BinDataSetSolution> {
 

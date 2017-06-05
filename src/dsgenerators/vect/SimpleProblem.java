@@ -1,13 +1,13 @@
-package temp.mop;
+package dsgenerators.vect;
 
 import org.uma.jmetal.problem.DoubleProblem;
 import org.uma.jmetal.solution.DoubleSolution;
 import org.uma.jmetal.solution.impl.DefaultDoubleSolution;
 
+import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataset;
-import temp.ErrorFunction;
 
-public class DoubleVectProblem implements DoubleProblem {
+public class SimpleProblem implements DoubleProblem {
 
     final int a, p, n;
     private final ErrorFunction error;
@@ -15,7 +15,7 @@ public class DoubleVectProblem implements DoubleProblem {
     double lowerBound = -1;
     double upperBound = +1;
 
-    public DoubleVectProblem(ErrorFunction error, int a, int p, int n) {
+    public SimpleProblem(ErrorFunction error, int a, int p, int n) {
         this.error = error;
         this.a = a;
         this.p = p;

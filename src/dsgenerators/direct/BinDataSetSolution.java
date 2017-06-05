@@ -1,4 +1,4 @@
-package temp.mop;
+package dsgenerators.direct;
 
 import org.uma.jmetal.solution.Solution;
 

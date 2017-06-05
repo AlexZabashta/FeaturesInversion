@@ -1,4 +1,4 @@
-package temp.mop;
+package dsgenerators.direct;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,9 +8,9 @@ import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
 import org.uma.jmetal.operator.CrossoverOperator;
 import org.uma.jmetal.operator.MutationOperator;
 
+import dsgenerators.DatasetGenerator;
+import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataset;
-import temp.DatasetGenerator;
-import temp.ErrorFunction;
 
 public class GenOverObj implements DatasetGenerator {
 

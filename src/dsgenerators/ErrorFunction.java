@@ -1,4 +1,4 @@
-package temp;
+package dsgenerators;
 
 import features_inversion.classification.dataset.BinDataset;
 

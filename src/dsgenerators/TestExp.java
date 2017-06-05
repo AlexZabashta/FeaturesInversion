@@ -1,4 +1,4 @@
-package temp.mop;
+package dsgenerators;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,10 +13,9 @@ import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
 import org.uma.jmetal.operator.CrossoverOperator;
 import org.uma.jmetal.operator.MutationOperator;
 
+import dsgenerators.direct.GenOverObj;
+import dsgenerators.vect.GenOverDVect;
 import features_inversion.classification.dataset.BinDataset;
-import temp.DatasetGenerator;
-import temp.ErrorFunction;
-import temp.SimpleDist;
 import weka.core.Instances;
 
 public class TestExp {
@@ -121,8 +120,8 @@ public class TestExp {
 
         errorFunction.best = Double.POSITIVE_INFINITY;
 
-        // DatasetGenerator g = new GenOverDVect(datasets);
-        DatasetGenerator g = new GenOverObj(datasets);
+        DatasetGenerator g = new GenOverDVect(datasets);
+        // DatasetGenerator g = new GenOverObj(datasets);
 
         System.out.println("size = " + g.generate(numAttributes, numPosInstances, numNegInstances, errorFunction, pop, pop * 40).size());
 

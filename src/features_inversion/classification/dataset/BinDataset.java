@@ -7,8 +7,8 @@ import java.util.Arrays;
 import com.ifmo.recommendersystem.metafeatures.decisiontree.WrappedC45DecisionTree;
 import com.ifmo.recommendersystem.metafeatures.decisiontree.WrappedC45ModelSelection;
 
+import dsgenerators.ListMetaFeatures;
 import features_inversion.classification.dataset.mf.MetaFeatures;
-import temp.mop.ListMetaFeatures;
 import weka.classifiers.trees.j48.ModelSelection;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -77,8 +77,14 @@ public class BinDataset implements Serializable {
     public final double[][] pos, neg;
 
     public BinDataset(double[][] pos, double[][] neg, int numAttr) {
-        this.pos = pos;
-        this.neg = neg;
+
+        if (pos.length >= neg.length) {
+            this.pos = pos;
+            this.neg = neg;
+        } else {
+            this.pos = neg;
+            this.neg = pos;
+        }
 
         if (numAttr <= 0) {
             throw new IllegalArgumentException("numAttr must be > 0");

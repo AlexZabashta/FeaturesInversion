@@ -1,4 +1,4 @@
-package temp.mop;
+package dsgenerators.vect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,9 +13,10 @@ import org.uma.jmetal.problem.DoubleProblem;
 import org.uma.jmetal.problem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.DoubleSolution;
 
+import dsgenerators.DatasetGenerator;
+import dsgenerators.ErrorFunction;
+import dsgenerators.direct.GDSProblem;
 import features_inversion.classification.dataset.BinDataset;
-import temp.DatasetGenerator;
-import temp.ErrorFunction;
 
 public class GenOverDVect implements DatasetGenerator {
     final List<BinDataset> initPopulation;
@@ -29,7 +30,15 @@ public class GenOverDVect implements DatasetGenerator {
 
         // ErrorFunction errorFunction = new SimpleDist(target, weight, mfIndices);
 
-        DoubleVectProblem problem = new DoubleVectProblem(error, a, p, n);
+        // SimpleProblem problem = new SimpleProblem(error, a, p, n);
+
+        // GMMProblem problem = new GMMProblem(error, a, p, n);
+
+        // BayesNetProblem problem = new BayesNetProblem(error, a, p, n);
+
+        // RBFProblem problem = new RBFProblem(error, a, p, n);
+
+        RDG1Problem problem = new RDG1Problem(error, a, p, n);
 
         CovarianceMatrixAdaptationEvolutionStrategy.Builder bld;
         bld = new CovarianceMatrixAdaptationEvolutionStrategy.Builder(problem);
@@ -42,18 +51,18 @@ public class GenOverDVect implements DatasetGenerator {
 
         for (BinDataset dataset : initPopulation) {
             if (dataset.numAttr >= a && dataset.pos.length >= p && dataset.neg.length >= n) {
-                initSolutions.add(problem.build(dataset));
+                // initSolutions.add(problem.build(dataset));
             }
         }
 
-        alg.setPopulation(initSolutions);
+        // alg.setPopulation(initSolutions);
 
         alg.run();
         DoubleSolution result = alg.getResult();
 
         List<BinDataset> finalPopulation = new ArrayList<>();
 
-        finalPopulation.add(problem.build(result));
+        // finalPopulation.add(problem.build(result));
 
         return finalPopulation;
     }

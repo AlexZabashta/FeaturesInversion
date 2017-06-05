@@ -43,6 +43,10 @@ import weka.datagenerators.classifiers.classification.RandomRBF;
 public class Test {
 
     public static void main(String[] args) throws Exception {
+        wekaGen();
+    }
+
+    static void abstrTest() {
 
         AbstractDoubleProblem abstractDoubleProblem = new AbstractDoubleProblem() {
 
@@ -108,6 +112,51 @@ public class Test {
 
     }
 
+    static void testAllParam() {
+
+        int n = 20;
+
+        // g5.setNumClasses(34);
+
+        for (int m = 5; m < 13; m++) {
+            for (int q = 0; q <= m; q++) {
+
+                for (int l = 1; l <= 16; l++) {
+                    for (int r = 1; r <= 16; r++) {
+
+                        for (int i = 0; i <= m; i++) {
+                            if (i + l > m) {
+                                break;
+                            }
+
+                            try {
+                                RDG1 g5 = new RDG1();
+                                g5.setNumExamples(n);
+                                g5.setNumAttributes(m);
+
+                                g5.setNumNumeric(q);
+
+                                g5.setMaxRuleSize(r); // R
+                                g5.setMinRuleSize(l); // L
+                                g5.setNumIrrelevant(i); // I
+
+                                // g5.setVoteFlag(false);
+
+                                g5.defineDataFormat();
+                                g5.generateExamples();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
+    }
+
     static void wekaGen() throws Exception {
 
         Agrawal g1 = new Agrawal();
@@ -125,33 +174,54 @@ public class Test {
         Instances format = new Instances("gen", attributes, 0);
         format.setClassIndex(m);
 
+        Random random = new Random();
+
         // g2.setDatasetFormat(format);
         g2.setRelationName("gen");
         g2.setNumExamples(n);
         g2.setNumAttributes(m + 1);
-        g2.setNumArcs(m); // m <= m *(m-1)/2
-        g2.setCardinality(2);
+        g2.setNumArcs(m * (m + 1) / 2); // m <= m *(m-1)/2
+        g2.setCardinality(1);
+        g2.setSeed(random.nextInt());
 
-        g4.setDatasetFormat(format);
+        // g4.setDatasetFormat(format);
         g4.setNumClasses(2);
         g4.setNumExamples(n);
         g4.setNumAttributes(m + 1);
-        g4.setNumCentroids(2);
+        g4.setNumCentroids(3);
+        g4.setSeed(random.nextInt());
         g4.defineDataFormat();
 
-        g5.setDatasetFormat(format);
+        // g5.setDatasetFormat(format);
         g5.setNumExamples(n);
-        g5.setNumAttributes(m + 1);
-        g5.setNumNumeric(m + 1);
+        g5.setNumAttributes(m);
 
-        g5.setMaxRuleSize(21);
-        g5.setMinRuleSize(23);
-        g5.setVoteFlag(false);
+        // g5.setNumClasses(34);
 
-        g5.setNumIrrelevant(0);
+        g5.setNumNumeric(m - 3); // N
+        g5.setMaxRuleSize(25); // R
+        g5.setMinRuleSize(14); // L
+        g5.setNumIrrelevant(9); // I
+        g5.setSeed(random.nextInt());
+        // g5.setVoteFlag(false);
 
         g5.defineDataFormat();
-        System.out.println(g5.generateExamples());
+
+        int x = 0, y = 0;
+        Instances instances = g5.generateExamples();
+        // instances.setClassIndex(m);
+
+        for (Instance instance : instances) {
+            if (instance.classValue() < 0.5) {
+                ++x;
+            } else {
+                ++y;
+            }
+        }
+
+        System.out.println(instances);
+        System.out.println(instances.classIndex());
+        System.out.println(x + " " + y);
 
     }
 
