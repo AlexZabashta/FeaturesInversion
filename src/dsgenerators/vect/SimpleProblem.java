@@ -1,26 +1,34 @@
 package dsgenerators.vect;
 
+import java.util.List;
+import java.util.Random;
+
 import org.uma.jmetal.problem.DoubleProblem;
 import org.uma.jmetal.solution.DoubleSolution;
 import org.uma.jmetal.solution.impl.DefaultDoubleSolution;
 
+import dsgenerators.EndSearch;
 import dsgenerators.ErrorFunction;
+import dsgenerators.direct.BinDataSetSolution;
 import features_inversion.classification.dataset.BinDataset;
 
 public class SimpleProblem implements DoubleProblem {
 
+    final ErrorFunction error;
+    final List<BinDataset> datasets;
+    final Random random = new Random();
     final int a, p, n;
-    private final ErrorFunction error;
 
-    double lowerBound = -1;
-    double upperBound = +1;
-
-    public SimpleProblem(ErrorFunction error, int a, int p, int n) {
-        this.error = error;
+    public SimpleProblem(int a, int p, int n, ErrorFunction error, List<BinDataset> datasets) {
         this.a = a;
         this.p = p;
         this.n = n;
+        this.error = error;
+        this.datasets = datasets;
     }
+
+    final static double lowerBound = -2;
+    final static double upperBound = +2;
 
     @Override
     public int getNumberOfVariables() {
@@ -39,13 +47,17 @@ public class SimpleProblem implements DoubleProblem {
 
     @Override
     public String getName() {
-        return getClass().getSimpleName() + error.toString();
+        return getClass().getSimpleName() + (datasets == null);
     }
 
     public DoubleSolution build(BinDataset dataset) {
         DoubleSolution solution = new DefaultDoubleSolution(this);
 
         int index = 0;
+
+        int a = Math.min(this.a, dataset.numAttr);
+        int p = Math.min(this.p, dataset.pos.length);
+        int n = Math.min(this.n, dataset.neg.length);
 
         for (int i = 0; i < p; i++) {
             for (int j = 0; j < a; j++) {
@@ -85,13 +97,20 @@ public class SimpleProblem implements DoubleProblem {
 
     @Override
     public void evaluate(DoubleSolution solution) {
-        solution.setObjective(0, error.evaluate(build(solution)));
+        try {
+            solution.setObjective(0, error.evaluate(build(solution)));
+        } catch (EndSearch e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public DoubleSolution createSolution() {
-        DoubleSolution solution = new DefaultDoubleSolution(this);
-        return solution;
+        if (datasets == null) {
+            return new DefaultDoubleSolution(this);
+        } else {
+            return build(datasets.get(random.nextInt(datasets.size())));
+        }
     }
 
     @Override

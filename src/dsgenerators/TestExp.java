@@ -22,7 +22,7 @@ public class TestExp {
 
     public static void main(String[] args) {
 
-        final int[] mfIndices = { 4, 5, 6, 9, 18, 19, 28, 29 };
+        final int[] mfIndices = { 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 };
         final int n = mfIndices.length;
 
         final double[] sum0 = new double[n];
@@ -31,7 +31,7 @@ public class TestExp {
 
         final List<BinDataset> datasets = new ArrayList<BinDataset>();
 
-        for (File file : new File("data\\bin_arff\\").listFiles()) {
+        for (File file : new File("data\\bin_undin\\").listFiles()) {
             try (FileReader reader = new FileReader(file)) {
                 Instances instances = new Instances(reader);
                 instances.setClassIndex(instances.numAttributes() - 1);

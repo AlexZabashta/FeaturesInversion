@@ -1,5 +1,8 @@
 package dsgenerators.direct;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.uma.jmetal.solution.Solution;
 
 import features_inversion.classification.dataset.BinDataset;
@@ -64,12 +67,14 @@ public class BinDataSetSolution implements Solution<BinDataset> {
 
     @Override
     public void setAttribute(Object id, Object value) {
-
+        map.put(id, value);
     }
+
+    final Map<Object, Object> map = new HashMap<>();
 
     @Override
     public Object getAttribute(Object id) {
-        return 0D;
+        return map.get(id);
     }
 
 }

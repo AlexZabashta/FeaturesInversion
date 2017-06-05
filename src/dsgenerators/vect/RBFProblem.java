@@ -8,8 +8,10 @@ import org.uma.jmetal.problem.DoubleProblem;
 import org.uma.jmetal.solution.DoubleSolution;
 import org.uma.jmetal.solution.impl.DefaultDoubleSolution;
 
+import dsgenerators.EndSearch;
 import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataset;
+import features_inversion.classification.dataset.RelationsGenerator;
 import jMEF.MultivariateGaussian;
 import jMEF.PVector;
 import jMEF.PVectorMatrix;
@@ -26,7 +28,7 @@ public class RBFProblem implements DoubleProblem {
     final int a, p, n;
     private final ErrorFunction error;
 
-    public RBFProblem(ErrorFunction error, int a, int p, int n) {
+    public RBFProblem(int a, int p, int n, ErrorFunction error) {
         this.error = error;
         this.a = a;
         this.p = p;
@@ -50,7 +52,7 @@ public class RBFProblem implements DoubleProblem {
 
     @Override
     public String getName() {
-        return getClass().getSimpleName() + error.toString();
+        return getClass().getSimpleName();
     }
 
     Random random = new Random();
@@ -69,7 +71,7 @@ public class RBFProblem implements DoubleProblem {
             RandomRBF rbf = new RandomRBF();
 
             rbf.setRelationName("gen");
-            rbf.setNumExamples(p + n);
+            rbf.setNumExamples(2 * (p + n));
             rbf.setNumAttributes(a + 1);
             rbf.setNumCentroids(Math.max(1, centr));
             rbf.setSeed(random.nextInt());
@@ -128,8 +130,19 @@ public class RBFProblem implements DoubleProblem {
                     }
                 }
 
+                if (pos.length < neg.length) {
+                    double[][] tmp = pos;
+                    pos = neg;
+                    neg = tmp;
+                }
+                pos = RelationsGenerator.fit(pos, p, a, random);
+                neg = RelationsGenerator.fit(neg, n, a, random);
+
                 avg += error.evaluate(new BinDataset(pos, neg, a));
             } catch (Exception e) {
+                if (e instanceof EndSearch) {
+                    throw new RuntimeException(e);
+                }
                 System.err.println(e.getLocalizedMessage());
                 avg += 100;
             }

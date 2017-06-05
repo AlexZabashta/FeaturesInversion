@@ -20,16 +20,18 @@ public class ListMetaFeatures {
         try {
             return mf.get(index).extractValue(dataset);
         } catch (Exception e) {
-            System.err.println(e.getMessage() + " " + e.getLocalizedMessage());
+            System.err.println(e.getMessage());
             return Double.NaN;
         }
     }
 
     static {
-        mf.add(new com.ifmo.recommendersystem.metafeatures.general.NumberOfInstances());
-        mf.add(new com.ifmo.recommendersystem.metafeatures.general.NumberOfFeatures());
         mf.add(new com.ifmo.recommendersystem.metafeatures.general.NumberOfClasses());
         mf.add(new com.ifmo.recommendersystem.metafeatures.general.DataSetDimensionality());
+        mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanStandardDeviation());
+        mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanCoefficientOfVariation());        
+        mf.add(new com.ifmo.recommendersystem.metafeatures.general.NumberOfInstances());
+        mf.add(new com.ifmo.recommendersystem.metafeatures.general.NumberOfFeatures());
         mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanLinearCorrelationCoefficient());
         mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanSkewness());
         mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanKurtosis());
@@ -39,8 +41,6 @@ public class ListMetaFeatures {
         mf.add(new com.ifmo.recommendersystem.metafeatures.informationtheoretic.MaxMutualInformation());
         mf.add(new com.ifmo.recommendersystem.metafeatures.informationtheoretic.EquivalentNumberOfFeatures());
         mf.add(new com.ifmo.recommendersystem.metafeatures.informationtheoretic.NoiseSignalRatio());
-        mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanStandardDeviation());
-        mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanCoefficientOfVariation());
         mf.add(new com.ifmo.recommendersystem.metafeatures.decisiontree.pruned.PrunedTreeDevAttr());
         mf.add(new com.ifmo.recommendersystem.metafeatures.decisiontree.pruned.PrunedTreeDevBranch());
         mf.add(new com.ifmo.recommendersystem.metafeatures.decisiontree.pruned.PrunedTreeDevLevel());

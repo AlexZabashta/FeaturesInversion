@@ -38,7 +38,7 @@ public class GenOverDVect implements DatasetGenerator {
 
         // RBFProblem problem = new RBFProblem(error, a, p, n);
 
-        RDG1Problem problem = new RDG1Problem(error, a, p, n);
+        RDG1Problem problem = null;// new RDG1Problem(error, a, p, n);
 
         CovarianceMatrixAdaptationEvolutionStrategy.Builder bld;
         bld = new CovarianceMatrixAdaptationEvolutionStrategy.Builder(problem);

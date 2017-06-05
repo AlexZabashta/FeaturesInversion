@@ -8,8 +8,10 @@ import org.uma.jmetal.problem.DoubleProblem;
 import org.uma.jmetal.solution.DoubleSolution;
 import org.uma.jmetal.solution.impl.DefaultDoubleSolution;
 
+import dsgenerators.EndSearch;
 import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataset;
+import features_inversion.classification.dataset.RelationsGenerator;
 import jMEF.MultivariateGaussian;
 import jMEF.PVector;
 import jMEF.PVectorMatrix;
@@ -27,7 +29,7 @@ public class RDG1Problem implements DoubleProblem {
     final int a, p, n;
     private final ErrorFunction error;
 
-    public RDG1Problem(ErrorFunction error, int a, int p, int n) {
+    public RDG1Problem(int a, int p, int n, ErrorFunction error) {
         this.error = error;
         this.a = a;
         this.p = p;
@@ -51,7 +53,7 @@ public class RDG1Problem implements DoubleProblem {
 
     @Override
     public String getName() {
-        return getClass().getSimpleName() + error.toString();
+        return getClass().getSimpleName();
     }
 
     Random random = new Random();
@@ -74,26 +76,26 @@ public class RDG1Problem implements DoubleProblem {
 
             int m = a + 1;
 
-            RDG1 g5 = new RDG1();
-            g5.setNumExamples(p + n);
-            g5.setNumAttributes(m);
+            RDG1 rdg = new RDG1();
+            rdg.setNumExamples(2 * (p + n));
+            rdg.setNumAttributes(m);
 
-            g5.setNumNumeric(rep(0, (int) Math.round(m * rNum), m));
-            g5.setMaxRuleSize(rep(1, (int) Math.round(m * rMax), m));
+            rdg.setNumNumeric(rep(0, (int) Math.round(m * rNum), m));
+            rdg.setMaxRuleSize(rep(1, (int) Math.round(m * rMax), m));
 
             int nMin = rep(1, (int) Math.round(m * rMin), m);
             int nRem = m - nMin;
             int nIrr = rep(0, (int) Math.round(nRem * rIrr), nRem);
 
-            g5.setMinRuleSize(nMin);
-            g5.setNumIrrelevant(nIrr);
-            g5.setRelationName("gen");
+            rdg.setMinRuleSize(nMin);
+            rdg.setNumIrrelevant(nIrr);
+            rdg.setRelationName("gen");
 
-            g5.setSeed(random.nextInt());
+            rdg.setSeed(random.nextInt());
 
             try {
-                g5.defineDataFormat();
-                Instances instances = g5.generateExamples();
+                rdg.defineDataFormat();
+                Instances instances = rdg.generateExamples();
 
                 int cntP = 0, cntN = 0;
 
@@ -144,9 +146,20 @@ public class RDG1Problem implements DoubleProblem {
                     }
                 }
 
+                if (pos.length < neg.length) {
+                    double[][] tmp = pos;
+                    pos = neg;
+                    neg = tmp;
+                }
+                pos = RelationsGenerator.fit(pos, p, a, random);
+                neg = RelationsGenerator.fit(neg, n, a, random);
+
                 avg += error.evaluate(new BinDataset(pos, neg, a));
             } catch (Exception e) {
-                System.err.printf("%d %d %d %d%n", g5.getMinRuleSize(), g5.getMaxRuleSize(), g5.getNumIrrelevant(), g5.getNumNumeric());
+                if (e instanceof EndSearch) {
+                    throw new RuntimeException(e);
+                }
+                System.err.printf("%d %d %d %d%n", rdg.getMinRuleSize(), rdg.getMaxRuleSize(), rdg.getNumIrrelevant(), rdg.getNumNumeric());
                 avg += 100;
             }
         }

@@ -25,7 +25,7 @@ public class GenOverObj implements DatasetGenerator {
 
         // ErrorFunction errorFunction = new SimpleDist(target, weight, mfIndices);
 
-        GDSProblem problem = new GDSProblem(error, initPopulation);
+        GDSProblem problem = null;// new GDSProblem(error, initPopulation);
 
         CrossoverOperator<BinDataSetSolution> crossoverOperator = new Crossover();
         MutationOperator<BinDataSetSolution> mutationOperator = new Mutation();

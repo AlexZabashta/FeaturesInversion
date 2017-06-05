@@ -6,6 +6,7 @@ import java.util.Random;
 
 import org.uma.jmetal.problem.Problem;
 
+import dsgenerators.EndSearch;
 import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataMutation;
 import features_inversion.classification.dataset.BinDataset;
@@ -14,13 +15,17 @@ import features_inversion.classification.fun.RandomFunction;
 
 public class GDSProblem implements Problem<BinDataSetSolution> {
 
-    private final ErrorFunction errorFunction;
-    private final List<BinDataset> datasets;
-    private final Random random = new Random();
+    final ErrorFunction errorFunction;
+    final List<BinDataset> datasets;
+    final Random random = new Random();
+    final int a, p, n;
 
-    public GDSProblem(ErrorFunction errorFunction, List<BinDataset> datasets) {
+    public GDSProblem(int a, int p, int n, ErrorFunction errorFunction, List<BinDataset> datasets) {
+        this.a = a;
+        this.p = p;
+        this.n = n;
         this.errorFunction = errorFunction;
-        this.datasets = new ArrayList<>(datasets);
+        this.datasets = datasets;
     }
 
     @Override
@@ -40,33 +45,33 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
 
     @Override
     public String getName() {
-        return getClass().getSimpleName() + errorFunction.toString();
+        return getClass().getSimpleName() + (datasets == null);
     }
 
     @Override
     public void evaluate(BinDataSetSolution solution) {
         BinDataset dataset = solution.getVariableValue(0);
-        solution.setObjective(0, errorFunction.evaluate(dataset));
+        try {
+            solution.setObjective(0, errorFunction.evaluate(dataset));
+        } catch (EndSearch e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public BinDataSetSolution createSolution() {
-        int attr = random.nextInt(200) + 1;
-        int posN = random.nextInt(200) + 1;
-        int negN = random.nextInt(200) + 1;
+        if (datasets == null) {
+            double[][] pos = new double[p][a];
+            double[][] neg = new double[n][a];
+            for (int j = 0; j < a; j++) {
+                AttributeFunction fun = RandomFunction.generate(random, j, 4);
+                BinDataMutation.apply(fun, pos, j, true);
+                BinDataMutation.apply(fun, neg, j, false);
+            }
+            return new BinDataSetSolution(new BinDataset(pos, neg, a));
 
-        double[][] pos = new double[posN][attr];
-        double[][] neg = new double[negN][attr];
-
-        for (int j = 0; j < attr; j++) {
-            AttributeFunction fun = RandomFunction.generate(random, j, 4);
-            BinDataMutation.apply(fun, pos, j, true);
-            BinDataMutation.apply(fun, neg, j, false);
+        } else {
+            return new BinDataSetSolution(datasets.get(random.nextInt(datasets.size())));
         }
-
-        return new BinDataSetSolution(new BinDataset(pos, neg, attr));
-
-        // return new BinDataSetSolution(datasets.get(random.nextInt(datasets.size())));
     }
-
 }

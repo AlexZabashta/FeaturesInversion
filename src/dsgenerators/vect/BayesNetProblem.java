@@ -8,6 +8,7 @@ import org.uma.jmetal.problem.DoubleProblem;
 import org.uma.jmetal.solution.DoubleSolution;
 import org.uma.jmetal.solution.impl.DefaultDoubleSolution;
 
+import dsgenerators.EndSearch;
 import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataset;
 import features_inversion.classification.dataset.RelationsGenerator;
@@ -24,9 +25,9 @@ public class BayesNetProblem implements DoubleProblem {
     final int rep = 10;
 
     final int a, p, n;
-    private final ErrorFunction error;
+    final ErrorFunction error;
 
-    public BayesNetProblem(ErrorFunction error, int a, int p, int n) {
+    public BayesNetProblem(int a, int p, int n, ErrorFunction error) {
         this.error = error;
         this.a = a;
         this.p = p;
@@ -50,7 +51,7 @@ public class BayesNetProblem implements DoubleProblem {
 
     @Override
     public String getName() {
-        return getClass().getSimpleName() + error.toString();
+        return getClass().getSimpleName();
     }
 
     Random random = new Random();
@@ -69,7 +70,7 @@ public class BayesNetProblem implements DoubleProblem {
             BayesNet bayesNet = new BayesNet();
 
             bayesNet.setRelationName("gen");
-            bayesNet.setNumExamples(p + n);
+            bayesNet.setNumExamples(2 * (p + n));
             bayesNet.setNumAttributes(a + 1);
             bayesNet.setNumArcs(Math.max(a, Math.min(arcs, a * (a + 1) / 2)));
             bayesNet.setSeed(random.nextInt());
@@ -127,11 +128,24 @@ public class BayesNetProblem implements DoubleProblem {
                     }
                 }
 
+                if (pos.length < neg.length) {
+                    double[][] tmp = pos;
+                    pos = neg;
+                    neg = tmp;
+                }
+                pos = RelationsGenerator.fit(pos, p, a, random);
+                neg = RelationsGenerator.fit(neg, n, a, random);
+
                 avg += error.evaluate(new BinDataset(pos, neg, a));
+
             } catch (Exception e) {
+                if (e instanceof EndSearch) {
+                    throw new RuntimeException(e);
+                }
                 System.err.println(e.getLocalizedMessage());
                 avg += 100;
             }
+
         }
 
         solution.setObjective(0, avg / rep);

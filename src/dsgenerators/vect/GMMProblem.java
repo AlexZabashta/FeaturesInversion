@@ -4,6 +4,7 @@ import org.uma.jmetal.problem.DoubleProblem;
 import org.uma.jmetal.solution.DoubleSolution;
 import org.uma.jmetal.solution.impl.DefaultDoubleSolution;
 
+import dsgenerators.EndSearch;
 import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataset;
 import jMEF.MultivariateGaussian;
@@ -20,7 +21,7 @@ public class GMMProblem implements DoubleProblem {
     double lowerBound = -100;
     double upperBound = +100;
 
-    public GMMProblem(ErrorFunction error, int a, int p, int n) {
+    public GMMProblem(int a, int p, int n, ErrorFunction error) {
         this.error = error;
         this.a = a;
         this.p = p;
@@ -44,7 +45,7 @@ public class GMMProblem implements DoubleProblem {
 
     @Override
     public String getName() {
-        return getClass().getSimpleName() + error.toString();
+        return getClass().getSimpleName();
     }
 
     @Override
@@ -100,7 +101,11 @@ public class GMMProblem implements DoubleProblem {
                 neg[i] = gmm.drawRandomPoint(negVM).array;
             }
 
-            avg += error.evaluate(new BinDataset(pos, neg, a));
+            try {
+                avg += error.evaluate(new BinDataset(pos, neg, a));
+            } catch (EndSearch e) {
+                throw new RuntimeException(e);
+            }
         }
 
         solution.setObjective(0, avg / rep);
