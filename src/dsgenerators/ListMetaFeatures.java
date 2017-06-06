@@ -25,11 +25,15 @@ public class ListMetaFeatures {
         }
     }
 
+    public static int size() {
+        return mf.size();
+    }
+
     static {
         mf.add(new com.ifmo.recommendersystem.metafeatures.general.NumberOfClasses());
         mf.add(new com.ifmo.recommendersystem.metafeatures.general.DataSetDimensionality());
         mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanStandardDeviation());
-        mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanCoefficientOfVariation());        
+        mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanCoefficientOfVariation());
         mf.add(new com.ifmo.recommendersystem.metafeatures.general.NumberOfInstances());
         mf.add(new com.ifmo.recommendersystem.metafeatures.general.NumberOfFeatures());
         mf.add(new com.ifmo.recommendersystem.metafeatures.statistical.MeanLinearCorrelationCoefficient());
@@ -105,5 +109,9 @@ public class ListMetaFeatures {
         mf.add(new com.ifmo.recommendersystem.metafeatures.classifierbased.neural.StdDevSqrtPerceptronWeightSum());
         mf.add(new com.ifmo.recommendersystem.metafeatures.classifierbased.neural.StdDevOneTenthPerceptronWeightSum());
         mf.add(new com.ifmo.recommendersystem.metafeatures.classifierbased.neural.FullPerceptronWeightSum());
+
+        mf.add(new SMOF());
+        mf.add(new NaiveBayesF());
+
     }
 }

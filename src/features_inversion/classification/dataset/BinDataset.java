@@ -89,7 +89,7 @@ public class BinDataset implements Serializable {
     private transient Instances instances = null;
     private final Object lock = new Object();
 
-    final double[] metaFeatures = new double[123];
+    final double[] metaFeatures = new double[128];
 
     public final int numAttr;
 
