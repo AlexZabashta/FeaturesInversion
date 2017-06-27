@@ -14,8 +14,8 @@ import features_inversion.classification.dataset.BinDataset;
 import misc.FolderUtils;
 import weka.core.Instances;
 
-public class PrintInfo {
-    static String src = "result\\dsgenerators.RunExp\\1496688807934";
+public class PrintInfoInv {
+    static String src = "result\\dsgenerators.RunInvExp\\1496776525035";
     static final int[] mfIndices = { 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 };
     static final int n = mfIndices.length;
 
@@ -241,10 +241,8 @@ public class PrintInfo {
     }
 
     public static void main(String[] args) throws IOException {
-        printMFinfo();
-        for (int i = 0; i < n; i++) {
-            System.out.println("MF" + (i + 1) + " " + ListMetaFeatures.getName(mfIndices[i]));
-        }
+       // printAP();
+        printDE();
 
     }
 

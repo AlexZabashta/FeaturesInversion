@@ -11,6 +11,7 @@ import dsgenerators.EndSearch;
 import dsgenerators.ErrorFunction;
 import dsgenerators.direct.BinDataSetSolution;
 import features_inversion.classification.dataset.BinDataset;
+import features_inversion.classification.dataset.RelationsGenerator;
 
 public class SimpleProblem implements DoubleProblem {
 
@@ -37,7 +38,7 @@ public class SimpleProblem implements DoubleProblem {
 
     @Override
     public int getNumberOfObjectives() {
-        return 1;
+        return error.length();
     }
 
     @Override
@@ -56,18 +57,19 @@ public class SimpleProblem implements DoubleProblem {
         int index = 0;
 
         int a = Math.min(this.a, dataset.numAttr);
-        int p = Math.min(this.p, dataset.pos.length);
-        int n = Math.min(this.n, dataset.neg.length);
+
+        double[][] pos = RelationsGenerator.fit(dataset.pos, p, a, random);
+        double[][] neg = RelationsGenerator.fit(dataset.neg, n, a, random);
 
         for (int i = 0; i < p; i++) {
             for (int j = 0; j < a; j++) {
-                solution.setVariableValue(index++, dataset.pos[i][j]);
+                solution.setVariableValue(index++, pos[i][j]);
             }
         }
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < a; j++) {
-                solution.setVariableValue(index++, dataset.neg[i][j]);
+                solution.setVariableValue(index++, neg[i][j]);
             }
         }
 
@@ -98,7 +100,13 @@ public class SimpleProblem implements DoubleProblem {
     @Override
     public void evaluate(DoubleSolution solution) {
         try {
-            solution.setObjective(0, error.evaluate(build(solution)));
+            int length = error.length();
+            double[] vect = error.componentwise(build(solution));
+
+            for (int i = 0; i < length; i++) {
+                solution.setObjective(0, vect[i]);
+            }
+
         } catch (EndSearch e) {
             throw new RuntimeException(e);
         }

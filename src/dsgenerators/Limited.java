@@ -8,28 +8,51 @@ public class Limited implements ErrorFunction {
 
     public BinDataset dataset = null;
     public double best = Double.POSITIVE_INFINITY;
-    int limit;
+    public final double[] log;
+    public int qid = 0;
 
     public Limited(ErrorFunction function, int limit) {
         this.function = function;
-        this.limit = limit;
+        log = new double[limit];
     }
 
     @Override
-    public double evaluate(BinDataset dataset) throws EndSearch {
-        if (limit <= 0) {
+    public double aggregate(double[] vector) {
+        return function.aggregate(vector);
+    }
+
+    @Override
+    public double[] componentwise(BinDataset dataset) throws EndSearch {
+        if (qid >= log.length) {
             throw new EndSearch();
         }
-        --limit;
 
-        double value = function.evaluate(dataset);
+        double[] vector = function.componentwise(dataset);
+
+        double value;
+        if (function.length() == 1) {
+            value = vector[0];
+        } else {
+            value = function.aggregate(vector);
+        }
 
         if (value < best) {
             best = value;
             this.dataset = dataset;
         }
 
-        return value;
+        log[qid++] = value;
+
+        if (qid >= log.length) {
+            throw new EndSearch();
+        }
+
+        return vector;
+    }
+
+    @Override
+    public int length() {
+        return function.length();
     }
 
 }

@@ -82,7 +82,7 @@ public class TestExp {
         System.out.println(Arrays.toString(target));
         System.out.println(Arrays.toString(weight));
 
-        SimpleDist errorFunction = new SimpleDist(target, weight, mfIndices);
+        EuclideanDist errorFunction = new EuclideanDist(target, weight, mfIndices);
 
         // GenOverObj g = new GenOverObj(datasets);
 

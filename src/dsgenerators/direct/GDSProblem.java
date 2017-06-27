@@ -35,7 +35,7 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
 
     @Override
     public int getNumberOfObjectives() {
-        return 1;
+        return errorFunction.length();
     }
 
     @Override
@@ -52,7 +52,10 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
     public void evaluate(BinDataSetSolution solution) {
         BinDataset dataset = solution.getVariableValue(0);
         try {
-            solution.setObjective(0, errorFunction.evaluate(dataset));
+            double[] vector = errorFunction.componentwise(dataset);
+            for (int i = 0; i < vector.length; i++) {
+                solution.setObjective(i, vector[i]);
+            }
         } catch (EndSearch e) {
             throw new RuntimeException(e);
         }

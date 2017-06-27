@@ -209,6 +209,7 @@ public class Test {
 
         int x = 0, y = 0;
         Instances instances = g5.generateExamples();
+        instances.setClassIndex(m);
         // instances.setClassIndex(m);
 
         for (Instance instance : instances) {

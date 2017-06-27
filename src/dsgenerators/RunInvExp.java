@@ -38,14 +38,14 @@ import dsgenerators.direct.BinDataSetSolution;
 import dsgenerators.direct.Crossover;
 import dsgenerators.direct.GDSProblem;
 import dsgenerators.direct.Mutation;
-import dsgenerators.vect.BayesNetProblem;
-import dsgenerators.vect.GMMProblem;
-import dsgenerators.vect.RBFProblem;
-import dsgenerators.vect.RDG1Problem;
+import dsgenerators.hyparam.BayesNetGen;
+import dsgenerators.hyparam.GMMGen;
+import dsgenerators.hyparam.RBFGen;
+import dsgenerators.hyparam.RDG1Gen;
 import dsgenerators.vect.SimpleProblem;
 import features_inversion.classification.dataset.BinDataset;
 import misc.FolderUtils;
-import misc.ProbFunAlg;
+import misc.Experiment;
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.functions.MultilayerPerceptron;
@@ -72,7 +72,7 @@ public class RunInvExp {
         final List<BinDataset> datasets = new ArrayList<BinDataset>();
         final List<String> fileNames = new ArrayList<String>();
 
-        for (File file : new File("data\\bin_undin\\").listFiles()) {
+        for (File file : new File("data\\carff\\").listFiles()) {
             try (FileReader reader = new FileReader(file)) {
                 Instances instances = new Instances(reader);
                 instances.setClassIndex(instances.numAttributes() - 1);
@@ -128,7 +128,7 @@ public class RunInvExp {
         }
 
         List<Classifier> classifiers = new ArrayList<>();
-        classifiers.add(new AdaBoostM1());
+
         classifiers.add(new Bagging());
         classifiers.add(new IBk(3));
         classifiers.add(new J48());
@@ -145,19 +145,21 @@ public class RunInvExp {
 
         ExecutorService threads = Executors.newFixedThreadPool(8);
 
-        List<ProbFunAlg> exp = new ArrayList<>();
+        List<Experiment> exp = new ArrayList<>();
 
         BinDataset targetDataset = null;
 
         {
 
-            final ErrorFunction sdist = new SimpleDist(new double[] { target[0], target[1], target[5] }, new double[] { weight[0], weight[1], weight[5] }, new int[] { mfIndices[0], mfIndices[1], mfIndices[5] });
+            final ErrorFunction sdist = new EuclideanDist(new double[] { target[0], target[1], target[5] }, new double[] { weight[0], weight[1], weight[5] }, new int[] { mfIndices[0], mfIndices[1], mfIndices[5] });
             double best = Double.POSITIVE_INFINITY;
             for (BinDataset dataset : datasets) {
-                double dist = sdist.evaluate(targetDataset);
+                double dist = sdist.evaluate(dataset);
                 if (dist < best) {
                     targetDataset = dataset;
                     best = dist;
+
+                    System.out.println("dist  = " + dist);
                 }
             }
         }
@@ -180,12 +182,16 @@ public class RunInvExp {
         }
 
         for (Classifier classifier : classifiers) {
-            final ErrorFunction function = new DistAndAcc(target, weight, mfIndices, classifier, datasets);
-            final String fileName = function.toString();
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            final ErrorFunction function = new DistAndAcc(target, weight, mfIndices, classifier, datasets);
+
+            final String fileName = function.toString() + ".arff";
+
+            System.out.println(fileName + " build");
+
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     DoubleProblem problem = (DoubleProblem) prob;
@@ -197,9 +203,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     DoubleProblem problem = (DoubleProblem) prob;
@@ -211,9 +217,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     GDSProblem problem = (GDSProblem) prob;
@@ -234,9 +240,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     DoubleProblem problem = (DoubleProblem) prob;
@@ -247,9 +253,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     GDSProblem problem = (GDSProblem) prob;
@@ -270,9 +276,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     DoubleProblem problem = (DoubleProblem) prob;
@@ -283,9 +289,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     GDSProblem problem = (GDSProblem) prob;
@@ -306,9 +312,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     GDSProblem problem = (GDSProblem) prob;
@@ -329,9 +335,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     GDSProblem problem = (GDSProblem) prob;
@@ -351,9 +357,9 @@ public class RunInvExp {
                 } catch (ClassCastException ifNotDouble) {
                 }
             }
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     GDSProblem problem = (GDSProblem) prob;
@@ -374,9 +380,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 try {
                     GDSProblem problem = (GDSProblem) prob;
@@ -397,9 +403,9 @@ public class RunInvExp {
                 }
             }
 
-            for (ProbFunAlg probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
+            for (Experiment probFunAlg : problems(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, function, limit, datasets)) {
                 Problem<?> prob = probFunAlg.problem;
-                probFunAlg.file = fileName;
+                probFunAlg.name = fileName;
 
                 if (prob instanceof SimpleProblem) {
                     continue;
@@ -418,13 +424,13 @@ public class RunInvExp {
 
         System.out.println("EXP = " + exp.size());
 
-        for (final ProbFunAlg probFunAlg : exp) {
+        for (final Experiment probFunAlg : exp) {
             final Algorithm<?> algorithm = probFunAlg.algorithm;
             if (algorithm == null) {
                 continue;
             }
             final Problem<?> problem = probFunAlg.problem;
-            final String file = probFunAlg.file;
+            final String file = probFunAlg.name;
             final Limited fun = probFunAlg.function;
 
             String name = algorithm.getClass().getSimpleName() + "_" + problem.getName() + "_" + file;
@@ -474,48 +480,48 @@ public class RunInvExp {
         threads.shutdown();
     }
 
-    static List<ProbFunAlg> problems(int a, int p, int n, ErrorFunction ef, int limit, List<BinDataset> datasets) {
-        final List<ProbFunAlg> problems = new ArrayList<ProbFunAlg>();
+    static List<Experiment> problems(int a, int p, int n, ErrorFunction ef, int limit, List<BinDataset> datasets) {
+        final List<Experiment> problems = new ArrayList<Experiment>();
 
         {
             Limited lef = new Limited(ef, limit);
             Problem<?> problem = (new GDSProblem(a, p, n, lef, datasets));
-            problems.add(new ProbFunAlg(problem, lef));
+            problems.add(new Experiment(problem, lef));
         }
         {
             Limited lef = new Limited(ef, limit);
             Problem<?> problem = (new GDSProblem(a, p, n, lef, null));
-            problems.add(new ProbFunAlg(problem, lef));
+            problems.add(new Experiment(problem, lef));
         }
         {
             Limited lef = new Limited(ef, limit);
             Problem<?> problem = (new SimpleProblem(a, p, n, lef, datasets));
-            problems.add(new ProbFunAlg(problem, lef));
+            problems.add(new Experiment(problem, lef));
         }
         {
             Limited lef = new Limited(ef, limit);
             Problem<?> problem = (new SimpleProblem(a, p, n, lef, null));
-            problems.add(new ProbFunAlg(problem, lef));
+            problems.add(new Experiment(problem, lef));
         }
         {
             Limited lef = new Limited(ef, limit);
-            Problem<?> problem = (new BayesNetProblem(a, p, n, lef));
-            problems.add(new ProbFunAlg(problem, lef));
+            Problem<?> problem = (new BayesNetGen(a, p, n, lef));
+            problems.add(new Experiment(problem, lef));
         }
         {
             Limited lef = new Limited(ef, limit);
-            Problem<?> problem = (new GMMProblem(a, p, n, lef));
-            problems.add(new ProbFunAlg(problem, lef));
+            Problem<?> problem = (new GMMGen(a, p, n, lef));
+            problems.add(new Experiment(problem, lef));
         }
         {
             Limited lef = new Limited(ef, limit);
-            Problem<?> problem = (new RBFProblem(a, p, n, lef));
-            problems.add(new ProbFunAlg(problem, lef));
+            Problem<?> problem = (new RBFGen(a, p, n, lef));
+            problems.add(new Experiment(problem, lef));
         }
         {
             Limited lef = new Limited(ef, limit);
-            Problem<?> problem = (new RDG1Problem(a, p, n, lef));
-            problems.add(new ProbFunAlg(problem, lef));
+            Problem<?> problem = (new RDG1Gen(a, p, n, lef));
+            problems.add(new Experiment(problem, lef));
         }
 
         return problems;

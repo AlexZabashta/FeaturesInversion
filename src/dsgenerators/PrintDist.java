@@ -23,7 +23,6 @@ public class PrintDist implements ErrorFunction {
 
     public double best = Double.POSITIVE_INFINITY;
 
-    @Override
     public double evaluate(BinDataset dataset) {
         double sumOfSquares = 0;
 
@@ -50,6 +49,24 @@ public class PrintDist implements ErrorFunction {
         }
 
         return dist;
+    }
+
+    @Override
+    public double[] componentwise(BinDataset dataset) throws EndSearch {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public double aggregate(double[] vector) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public int length() {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
 }

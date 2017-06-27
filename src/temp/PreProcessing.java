@@ -23,7 +23,7 @@ public class PreProcessing {
         int n = instances.numInstances(), m = instances.numAttributes();
 
         if (m > 500 || n > 2000) {
-             throw new Exception("Dataset too big: numAttributes > 300 or numInstances > 1000");
+            throw new Exception("Dataset too big: m > 500 || n > 2000");
         }
 
         int classIndex = -1;
@@ -40,15 +40,15 @@ public class PreProcessing {
             }
         }
 
-        for (int j = 0; classIndex == -1 && j < m; j++) {
-            int index = (j - 1 + m) % m;
-            if (instances.numDistinctValues(index) == 2) {
-                Attribute attribute = instances.attribute(index);
-                if (attribute.isNominal()) {
-                    classIndex = index;
-                }
-            }
-        }
+        // for (int j = 0; classIndex == -1 && j < m; j++) {
+        // int index = (j - 1 + m) % m;
+        // if (instances.numDistinctValues(index) == 2) {
+        // Attribute attribute = instances.attribute(index);
+        // if (attribute.isNominal()) {
+        // classIndex = index;
+        // }
+        // }
+        // }
 
         if (classIndex == -1) {
             throw new Exception("Can't find class");
@@ -88,12 +88,12 @@ public class PreProcessing {
     }
 
     public static void main(String[] args) {
-        for (File file : new File("data\\undin\\").listFiles()) {
+        for (File file : new File("data\\all\\").listFiles()) {
             try (FileReader reader = new FileReader(file)) {
                 Instances instances = new Instances(reader);
                 instances = PreProcessing.process(instances);
 
-                try (PrintWriter writer = new PrintWriter(new File("data\\bin_undin\\" + file.getName()))) {
+                try (PrintWriter writer = new PrintWriter(new File("data\\bin_all\\" + file.getName()))) {
                     writer.println(instances);
                 }
 

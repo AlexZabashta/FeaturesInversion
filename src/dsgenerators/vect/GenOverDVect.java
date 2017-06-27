@@ -16,6 +16,7 @@ import org.uma.jmetal.solution.DoubleSolution;
 import dsgenerators.DatasetGenerator;
 import dsgenerators.ErrorFunction;
 import dsgenerators.direct.GDSProblem;
+import dsgenerators.hyparam.RDG1Gen;
 import features_inversion.classification.dataset.BinDataset;
 
 public class GenOverDVect implements DatasetGenerator {
@@ -38,14 +39,14 @@ public class GenOverDVect implements DatasetGenerator {
 
         // RBFProblem problem = new RBFProblem(error, a, p, n);
 
-        RDG1Problem problem = null;// new RDG1Problem(error, a, p, n);
+        RDG1Gen problem = null;// new RDG1Problem(error, a, p, n);
 
         CovarianceMatrixAdaptationEvolutionStrategy.Builder bld;
-        bld = new CovarianceMatrixAdaptationEvolutionStrategy.Builder(problem);
+        // bld = new CovarianceMatrixAdaptationEvolutionStrategy.Builder(problem);
 
-        bld.setMaxEvaluations(500);
+        // bld.setMaxEvaluations(500);
 
-        CovarianceMatrixAdaptationEvolutionStrategy alg = bld.build();
+        // CovarianceMatrixAdaptationEvolutionStrategy alg = bld.build();
 
         List<DoubleSolution> initSolutions = new ArrayList<>();
 
@@ -57,8 +58,8 @@ public class GenOverDVect implements DatasetGenerator {
 
         // alg.setPopulation(initSolutions);
 
-        alg.run();
-        DoubleSolution result = alg.getResult();
+        // alg.run();
+        // DoubleSolution result = alg.getResult();
 
         List<BinDataset> finalPopulation = new ArrayList<>();
 

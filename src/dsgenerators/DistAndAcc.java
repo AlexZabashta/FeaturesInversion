@@ -92,7 +92,15 @@ public class DistAndAcc implements ErrorFunction {
             double s = dataset.getMetaFeature(79);
             double n = dataset.getMetaFeature(80);
 
-            if (Math.max(s, n) < 0.2 || Math.abs(s - n) < 0.1) {
+            if (Math.max(s, n) < 0.2) {
+                continue;
+            }
+
+            double m = s + n;
+            s /= m;
+            n /= m;
+
+            if (Math.abs(s - n) < 0.1) {
                 continue;
             }
 
@@ -112,12 +120,13 @@ public class DistAndAcc implements ErrorFunction {
             format.add(instance);
         }
 
+        System.out.println(format.numInstances());
+
         classifier.buildClassifier(format);
     }
 
     public double best = Double.POSITIVE_INFINITY;
 
-    @Override
     public double evaluate(BinDataset dataset) {
         double sumOfSquares = 0;
 
@@ -128,6 +137,24 @@ public class DistAndAcc implements ErrorFunction {
 
         return Math.sqrt(sumOfSquares) + 10 * test(dataset);
 
+    }
+
+    @Override
+    public double[] componentwise(BinDataset dataset) throws EndSearch {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public int length() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public double aggregate(double[] vector) {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
 }

@@ -6,14 +6,20 @@ import org.uma.jmetal.problem.Problem;
 import dsgenerators.ErrorFunction;
 import dsgenerators.Limited;
 
-public class ProbFunAlg {
+public class Experiment {
     public Problem<?> problem;
     public Limited function;
     public Algorithm<?> algorithm;
-    public String file;
+    public String name;
 
-    public ProbFunAlg(Problem<?> problem, Limited function) {
+    public Experiment(Problem<?> problem, Limited function) {
         this.problem = problem;
         this.function = function;
+    }
+
+    public Experiment(Problem<?> problem, Limited function, String name) {
+        this.problem = problem;
+        this.function = function;
+        this.name = name;
     }
 }
