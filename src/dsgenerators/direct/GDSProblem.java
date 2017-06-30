@@ -67,7 +67,10 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
             double[][] pos = new double[p][a];
             double[][] neg = new double[n][a];
             for (int j = 0; j < a; j++) {
-                AttributeFunction fun = RandomFunction.generate(random, j, 4);
+
+                int d = random.nextInt(10);
+
+                AttributeFunction fun = RandomFunction.generate(random, j, d);
                 BinDataMutation.apply(fun, pos, j, true);
                 BinDataMutation.apply(fun, neg, j, false);
             }

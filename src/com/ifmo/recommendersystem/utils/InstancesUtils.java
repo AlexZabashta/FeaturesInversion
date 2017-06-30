@@ -72,8 +72,7 @@ public class InstancesUtils {
         try {
             filter.setInputFormat(instances);
             return Filter.useFilter(instances, filter);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {        
             return null;
         }
     }
@@ -84,8 +83,7 @@ public class InstancesUtils {
         try {
             discretize.setInputFormat(instances);
             return Filter.useFilter(instances, discretize);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {           
             return null;
         }
     }
@@ -99,8 +97,7 @@ public class InstancesUtils {
             reorder.setOptions(new String[]{"-R", newOrder});
             reorder.setInputFormat(instances);
             return Filter.useFilter(instances, reorder);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {            
             return null;
         }
     }
@@ -130,8 +127,7 @@ public class InstancesUtils {
             remove.setAttributeIndicesArray(removingAttributes);
             remove.setInputFormat(instances);
             return Filter.useFilter(instances, remove);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {            
             return null;
         }
     }

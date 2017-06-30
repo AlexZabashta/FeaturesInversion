@@ -18,18 +18,27 @@ public class MaxMutualInformation extends MetaFeatureExtractor {
 
     @Override
     public double extractValue(Instances instances) throws Exception {
-        InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
+        try {
+            InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
 
-        infoGain.buildEvaluator(instances);
+            infoGain.buildEvaluator(instances);
 
-        double maxMutualInformation = -Double.MAX_VALUE;
-        for (int i = 0; i < instances.numAttributes(); i++) {
-            if (i != instances.classIndex()) {
+            double maxMutualInformation = 0;
+            for (int i = 0; i < instances.numAttributes(); i++) {
+                if (i != instances.classIndex()) {
 
-                maxMutualInformation = Math.max(maxMutualInformation, infoGain.evaluateAttribute(i));
+                    double mutualInformation = infoGain.evaluateAttribute(i);
 
+                    if (Double.isNaN(mutualInformation) || Double.isInfinite(mutualInformation)) {
+                        continue;
+                    }
+
+                    maxMutualInformation = Math.max(maxMutualInformation, mutualInformation);
+                }
             }
+            return maxMutualInformation;
+        } catch (Exception exception) {
+            return 0;
         }
-        return maxMutualInformation;
     }
 }

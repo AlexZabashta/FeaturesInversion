@@ -18,18 +18,37 @@ public class MeanMutualInformation extends MetaFeatureExtractor {
 
     @Override
     public double extractValue(Instances instances) throws Exception {
-        InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
 
-        infoGain.buildEvaluator(instances);
+        try {
+            InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
 
-        double meanMutualInformation = 0;
-        for (int i = 0; i < instances.numAttributes(); i++) {
-            if (i != instances.classIndex()) {
+            infoGain.buildEvaluator(instances);
 
-                meanMutualInformation += infoGain.evaluateAttribute(i);
+            double meanMutualInformation = 0;
+            int norm = 0;
+            for (int i = 0; i < instances.numAttributes(); i++) {
+                if (i != instances.classIndex()) {
 
+                    double mutualInformation = infoGain.evaluateAttribute(i);
+
+                    if (Double.isNaN(mutualInformation) || Double.isInfinite(mutualInformation)) {
+                        continue;
+                    }
+
+                    meanMutualInformation += mutualInformation;
+                    norm += 1;
+
+                }
             }
+
+            if (norm == 0) {
+                return 0;
+            } else {
+                return meanMutualInformation / norm;
+            }
+        } catch (Exception exception) {
+            return 0;
         }
-        return meanMutualInformation;
+
     }
 }

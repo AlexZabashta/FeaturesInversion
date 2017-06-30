@@ -175,7 +175,7 @@ public class RunMultCritExp {
             }
 
             exp.addAll(ListExperiments.experiments(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, efSo, limit, fileName, adatasets));
-            exp.addAll(ListExperiments.experiments(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, efMo, limit, fileName, adatasets));
+          //  exp.addAll(ListExperiments.experiments(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, efMo, limit, fileName, adatasets));
         }
 
         System.out.println("EXP = " + exp.size());
