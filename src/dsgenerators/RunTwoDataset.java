@@ -43,6 +43,7 @@ import dsgenerators.direct.GDSProblem;
 import dsgenerators.direct.Mutation;
 import dsgenerators.hyparam.BayesNetGen;
 import dsgenerators.hyparam.GMMGen;
+import dsgenerators.hyparam.PGProblem;
 import dsgenerators.hyparam.RBFGen;
 import dsgenerators.hyparam.RDG1Gen;
 import dsgenerators.vect.SimpleProblem;
@@ -51,7 +52,7 @@ import misc.FolderUtils;
 import misc.Experiment;
 import weka.core.Instances;
 
-public class RunMultCritExp {
+public class RunTwoDataset {
 
     public static void main(String[] args) {
         final int[] mfIndices = { 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 };
@@ -123,61 +124,91 @@ public class RunMultCritExp {
 
         final int size = datasets.size();
 
-        final int limit = 2048;
+        final int limit = 100;
 
         ExecutorService threads = Executors.newFixedThreadPool(8);
 
         List<Experiment> exp = new ArrayList<>();
 
-        for (int targetIndex = 0; targetIndex < size; targetIndex++) {
+        for (int rep = 0; rep < 10; rep++) {
 
-            BinDataset targetDataset = datasets.get(targetIndex);
-            final double[] target = new double[n];
-            for (int i = 0; i < n; i++) {
-                target[i] = targetDataset.getMetaFeature(mfIndices[i]);
-            }
+            for (int targetIndex = 0; targetIndex < size; targetIndex++) {
+                String fileName = fileNames.get(targetIndex).replace('_', '-');
 
-            final String fileName = fileNames.get(targetIndex).replace('_', '-');
+                if (fileName.equals("australian.arff") || fileName.equals("927.arff") || fileName.equals("1473.arff") || fileName.equals("56.arff") || fileName.equals("monks-problems-2-test.arff") || fileName.equals("820.arff")) {
 
-            final ErrorFunction efSo = new EuclideanDist(target, weight, mfIndices, false);
-            final ErrorFunction efMo = new EuclideanDist(target, weight, mfIndices, true);
+                    fileName = rep + "_" + fileName;
 
-            List<BinDataset> adatasets = new ArrayList<>(datasets);
+                    BinDataset targetDataset = datasets.get(targetIndex);
+                    final double[] target = new double[n];
+                    for (int i = 0; i < n; i++) {
+                        target[i] = targetDataset.getMetaFeature(mfIndices[i]);
+                    }
 
-            Collections.sort(adatasets, new Comparator<BinDataset>() {
-                @Override
-                public int compare(BinDataset x, BinDataset y) {
-                    try {
-                        return Double.compare(efSo.componentwise(y)[0], efSo.componentwise(x)[0]);
-                    } catch (EndSearch e) {
-                        return 0;
+                    int numAttr = targetDataset.numAttr;
+                    int numPos = targetDataset.pos.length;
+                    int numNeg = targetDataset.neg.length;
+
+                    final ErrorFunction ef = new EuclideanDist(target, weight, mfIndices, false);
+
+                    {
+                        Limited lef = new Limited(ef, limit);
+                        DoubleProblem problem = new PGProblem(numAttr, numPos, numNeg, lef, new GMMGen(numAttr, numPos, numNeg));
+                        Experiment e = new Experiment(problem, lef, fileName);
+                        e.algorithm = new CovarianceMatrixAdaptationEvolutionStrategy.Builder(problem).setMaxEvaluations(10000000).build();
+                        exp.add(e);
+                    }
+
+                    {
+                        Limited lef = new Limited(ef, limit);
+                        DoubleProblem problem = new SimpleProblem(numAttr, numPos, numNeg, lef, null);
+                        Experiment e = new Experiment(problem, lef, fileName);
+                        e.algorithm = new MOCellBuilder<DoubleSolution>(problem, new SBXCrossover(0.9, 20.0), new PolynomialMutation()).setMaxEvaluations(10000000).build();
+                        exp.add(e);
+                    }
+
+                    {
+                        Limited lef = new Limited(ef, limit);
+                        DoubleProblem problem = new SimpleProblem(numAttr, numPos, numNeg, lef, null);
+                        Experiment e = new Experiment(problem, lef, fileName);
+                        e.algorithm = new NSGAIIBuilder<DoubleSolution>(problem, new SBXCrossover(0.9, 20.0), new PolynomialMutation()).setMaxIterations(10000000).build();
+                        exp.add(e);
+                    }
+                    {
+                        Limited lef = new Limited(ef, limit);
+                        DoubleProblem problem = new SimpleProblem(numAttr, numPos, numNeg, lef, null);
+                        Experiment e = new Experiment(problem, lef, fileName);
+                        e.algorithm = new SMSEMOABuilder<DoubleSolution>(problem, new SBXCrossover(0.9, 20.0), new PolynomialMutation()).setMaxEvaluations(10000000).build();
+                        exp.add(e);
+                    }
+
+                    {
+                        Limited lef = new Limited(ef, limit);
+                        GDSProblem problem = new GDSProblem(numAttr, numPos, numNeg, lef, null);
+                        Experiment e = new Experiment(problem, lef, fileName);
+                        e.algorithm = new SPEA2Builder<BinDataSetSolution>(problem, new Crossover(), new Mutation()).setMaxIterations(10000000).build();
+                        exp.add(e);
+                    }
+                    {
+                        Limited lef = new Limited(ef, limit);
+                        GDSProblem problem = new GDSProblem(numAttr, numPos, numNeg, lef, null);
+                        Experiment e = new Experiment(problem, lef, fileName);
+                        e.algorithm = new NSGAIIBuilder<BinDataSetSolution>(problem, new Crossover(), new Mutation()).setMaxIterations(10000000).build();
+                        exp.add(e);
+                    }
+                    {
+                        Limited lef = new Limited(ef, limit);
+                        GDSProblem problem = new GDSProblem(numAttr, numPos, numNeg, lef, null);
+                        Experiment e = new Experiment(problem, lef, fileName);
+                        e.algorithm = new MOCellBuilder<BinDataSetSolution>(problem, new Crossover(), new Mutation()).setMaxEvaluations(10000000).build();
+                        exp.add(e);
                     }
                 }
-            });
 
-            adatasets = adatasets.subList(0, adatasets.size() - 20);
-
-            try (PrintWriter writer = new PrintWriter(new File(res + fileName + ".txt"))) {
-                for (int i = 0; i < n; i++) {
-                    writer.print(target[i]);
-                    writer.print(' ');
-                }
-                writer.println();
-
-                for (int i = 0; i < n; i++) {
-                    writer.print(weight[i]);
-                    writer.print(' ');
-                }
-                writer.println();
-
-            } catch (IOException e) {
-                e.printStackTrace();
+                // exp.addAll(ListExperiments.experiments(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, ef, limit, fileName, adatasets));
+                // exp.addAll(ListExperiments.experiments(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, efMo, limit, fileName, adatasets));
             }
-
-            exp.addAll(ListExperiments.experiments(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, efSo, limit, fileName, adatasets));
-            // exp.addAll(ListExperiments.experiments(targetDataset.numAttr, targetDataset.pos.length, targetDataset.neg.length, efMo, limit, fileName, adatasets));
         }
-
         System.out.println("EXP = " + exp.size());
 
         Collections.shuffle(exp);

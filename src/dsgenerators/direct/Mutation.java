@@ -85,7 +85,7 @@ public class Mutation implements MutationOperator<BinDataSetSolution> {
                 posB = new double[posA.length][attrB];
                 negB = new double[negA.length][attrB];
 
-                int d = random.nextInt(10);
+                int d = random.nextInt(6);
 
                 for (int i = attrA; i < attrB; i++) {
                     AttributeFunction fun = RandomFunction.generate(random, i, d);

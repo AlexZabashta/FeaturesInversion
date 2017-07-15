@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Random;
 
 import org.uma.jmetal.problem.Problem;
+import org.uma.jmetal.solution.DoubleSolution;
+import org.uma.jmetal.solution.impl.DefaultDoubleSolution;
 
 import dsgenerators.EndSearch;
 import dsgenerators.ErrorFunction;
 import features_inversion.classification.dataset.BinDataMutation;
 import features_inversion.classification.dataset.BinDataset;
+import features_inversion.classification.dataset.RelationsGenerator;
 import features_inversion.classification.fun.AttributeFunction;
 import features_inversion.classification.fun.RandomFunction;
 
@@ -61,15 +64,21 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
         }
     }
 
+    public BinDataset fit(BinDataset dataset) {
+        int a = Math.min(this.a, dataset.numAttr);
+        double[][] pos = RelationsGenerator.fit(dataset.pos, p, a, random);
+        double[][] neg = RelationsGenerator.fit(dataset.neg, n, a, random);
+        return new BinDataset(pos, neg, a);
+    }
+
     @Override
     public BinDataSetSolution createSolution() {
         if (datasets == null) {
             double[][] pos = new double[p][a];
             double[][] neg = new double[n][a];
+            int d = random.nextInt(6);
+
             for (int j = 0; j < a; j++) {
-
-                int d = random.nextInt(10);
-
                 AttributeFunction fun = RandomFunction.generate(random, j, d);
                 BinDataMutation.apply(fun, pos, j, true);
                 BinDataMutation.apply(fun, neg, j, false);
@@ -77,7 +86,7 @@ public class GDSProblem implements Problem<BinDataSetSolution> {
             return new BinDataSetSolution(new BinDataset(pos, neg, a));
 
         } else {
-            return new BinDataSetSolution(datasets.get(random.nextInt(datasets.size())));
+            return new BinDataSetSolution(fit(datasets.get(random.nextInt(datasets.size()))));
         }
     }
 }
